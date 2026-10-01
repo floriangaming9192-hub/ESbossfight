@@ -1,0 +1,2571 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ES Boss Fight - Réglages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+<style>
+:root{--y:#ffc400;--yl:#ffe45c;--r:#e30613;--f:'Bangers','Impact','Arial Black',sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:#fff;font:700 15px/1.4 'Trebuchet MS',Arial,sans-serif;background:radial-gradient(ellipse at 50% 0,transparent 15%,rgba(0,0,0,.7) 85%),repeating-conic-gradient(from 0deg at 50% 0,#240508 0 5deg,#0a0a0a 5deg 10deg) fixed}
+.hidden{display:none!important}
+h1,h2{margin:0;font-family:var(--f);font-weight:400;letter-spacing:1px}
+.panel,.login-box,.player-card,.container>header{background:radial-gradient(rgba(255,196,0,.11) 1.3px,transparent 1.8px) 0 0/11px 11px,linear-gradient(160deg,#201213,#0f0a0a);border:3px solid #000;border-radius:14px;box-shadow:0 0 0 3px var(--y),6px 6px 0 3px #000}
+h1{color:var(--y);-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:3px 3px 0 var(--r),5px 5px 0 #000}
+
+/* CONNEXION */
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{width:min(380px,100%);padding:28px;display:flex;flex-direction:column;gap:14px;text-align:center}
+.login-box h1{font-size:46px;text-transform:uppercase}
+.login-box p{margin:-6px 0 4px;font:400 24px var(--f);color:var(--yl)}
+
+/* STRUCTURE */
+.container{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+.container>header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;padding:14px 22px;margin-bottom:38px;background:repeating-linear-gradient(-45deg,#0a0a0a 0 18px,#1c1c1c 18px 36px)}
+.container>header h1{font-size:38px;text-transform:uppercase}
+.subtitle{color:#ccc;font-size:13px}
+.header-buttons,.actions,.photo-buttons{display:flex;flex-wrap:wrap;gap:10px}
+.panel{position:relative;padding:28px 20px 20px;margin-bottom:38px}
+.panel>h2{position:absolute;top:-20px;left:14px;padding:0 16px;font-size:24px;color:#000;background:var(--y);border:3px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;transform:rotate(-1.5deg)}
+.danger-zone{box-shadow:0 0 0 3px var(--r),6px 6px 0 3px #000}
+.danger-zone>h2{color:#fff;background:var(--r)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:16px}
+.field label{display:block;margin-bottom:6px;font-size:13px;color:var(--yl)}
+.field>div{font:400 28px var(--f);letter-spacing:1px}
+.current-boss{color:var(--y)}
+input,select{width:100%;padding:10px 12px;font:inherit;color:#fff;background:#0a0a0a;border:3px solid #000;border-radius:10px;box-shadow:0 0 0 2px #555;outline:none}
+input:focus,select:focus{box-shadow:0 0 0 2px var(--y)}
+.info{padding:10px 14px;font-size:14px;background:rgba(0,0,0,.55);border-left:6px solid var(--y);border-radius:4px 10px 10px 4px}
+.status:empty{display:none}
+.status.success,.status.error{margin-top:12px;padding:8px 12px;color:#000;border:3px solid #000;border-radius:8px}
+.status.success{background:#3ddc84}
+.status.error{color:#fff;background:var(--r)}
+
+/* BOUTONS */
+button{padding:8px 16px;font:400 18px var(--f);letter-spacing:1px;color:#000;border:3px solid #000;border-radius:10px;box-shadow:0 4px 0 #000;cursor:pointer;transition:transform .08s,box-shadow .08s}
+button:hover{transform:translateY(-2px);box-shadow:0 6px 0 #000}
+button:active{transform:translateY(3px);box-shadow:none}
+.btn-blue{background:var(--y)}
+.btn-purple{background:var(--yl)}
+.btn-orange{background:#ff9800}
+.btn-green{background:#3ddc84}
+.btn-gray{background:#ddd}
+.btn-red{color:#fff;background:var(--r)}
+
+/* JOUEURS */
+.players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px}
+.player-card{padding:16px}
+.player-header{display:flex;justify-content:space-between;gap:10px;margin-bottom:14px}
+.player-name{font:400 30px var(--f);letter-spacing:1px}
+.sales{font:400 18px var(--f);color:var(--y)}
+.es-goal-box{display:flex;align-items:center;gap:8px;margin-top:8px}
+.es-goal-box label{font-size:13px;color:var(--yl);white-space:nowrap}
+.es-goal-input{width:70px;padding:5px 8px}
+.es-goal-button{padding:3px 10px;font-size:16px;background:var(--y)}
+.photos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.photo-box{padding:8px;text-align:center;background:rgba(0,0,0,.45);border:2px dashed rgba(255,196,0,.45);border-radius:10px}
+.photo-title{margin-bottom:8px;font:400 18px var(--f);color:var(--yl)}
+.photo-preview{aspect-ratio:1;margin:0 3px 12px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:52px;background:#111;border:3px solid #000;border-radius:10px;box-shadow:0 0 0 2px var(--y)}
+.photo-preview img{width:100%;height:100%;object-fit:cover}
+.photo-buttons button{flex:1;padding:5px 8px;font-size:15px}
+@media(max-width:420px){.photos{grid-template-columns:1fr}}
+
+/* ÉQUIPES */
+input[type=color]{width:56px;height:42px;padding:2px;cursor:pointer;flex:0 0 auto}
+.team-create{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-bottom:18px}
+.team-create .field{flex:1 1 220px}
+.team-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 12px;margin-bottom:12px;background:rgba(0,0,0,.45);border:2px solid #000;border-left:12px solid var(--tc,#ffc400);border-radius:10px}
+.team-row input[type=text]{flex:1 1 160px;width:auto;min-width:0}
+.team-row button{padding:5px 12px;font-size:16px}
+.team-members{flex:1 0 100%;font-size:13px;color:#ccc}
+.team-box{display:flex;align-items:center;gap:8px;margin-top:8px}
+.team-box label{font-size:13px;color:var(--yl);white-space:nowrap}
+.team-select{width:auto;flex:1;min-width:0;padding:5px 8px}
+
+:root{--crown:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%22-6%20-7%2076%2062%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22cg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe45c%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%23ffc400%22%2F%3E%3Cstop%20offset%3D%22.56%22%20stop-color%3D%22%23ffa800%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ff9800%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22cd%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ff3b3b%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%23e30613%22%2F%3E%3Cstop%20offset%3D%22.56%22%20stop-color%3D%22%23c40410%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23a80009%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22cr%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ff5a5a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e30613%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M3%2040L1%2012L15%2026L20%204L27%2024L32%200L37%2024L44%204L49%2026L63%2012L61%2040Z%22%20fill%3D%22url%28%23cg%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M6%2035L4.2%2017M22%2011L25%2021M34%208L36%2020M46%2012L48%2021%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.85%22%2F%3E%3Cpath%20d%3D%22M3%2040H61L59%2048H5Z%22%20fill%3D%22url%28%23cd%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2244%22%20r%3D%221.9%22%20fill%3D%22%23ffe45c%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2224%22%20cy%3D%2244%22%20r%3D%221.9%22%20fill%3D%22%23ffe45c%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2240%22%20cy%3D%2244%22%20r%3D%221.9%22%20fill%3D%22%23ffe45c%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2244%22%20r%3D%221.9%22%20fill%3D%22%23ffe45c%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22%2F%3E%3Cpath%20d%3D%22M32%2026L38.5%2033.5L32%2041L25.5%2033.5Z%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M31%2029.5L28.6%2033L31%2033.6Z%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%221%22%20cy%3D%2212%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%22-0.10000000000000009%22%20cy%3D%2210.8%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%224%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%2218.9%22%20cy%3D%222.8%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%220%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%2230.9%22%20cy%3D%22-1.2%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%224%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%2242.9%22%20cy%3D%222.8%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%2263%22%20cy%3D%2212%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%2261.9%22%20cy%3D%2210.8%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3C%2Fsvg%3E")}
+.crown{display:inline-block;width:1.3em;height:1em;vertical-align:-.16em;background:var(--crown) center/contain no-repeat;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.6))}
+.photo-preview .crown{width:52%;height:auto;aspect-ratio:70/55}
+
+/* =========================
+   POP-UP DU JEU (alertes et confirmations)
+========================= */
+.gp-overlay{--gp:var(--r);--gs:var(--r);--gg:rgba(227,6,19,.55);position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 45%,rgba(140,0,12,.55),rgba(0,0,0,.9) 72%);backdrop-filter:blur(3px);animation:gpFade .18s ease-out}
+.gp-overlay.gp-question{--gp:var(--y);--gs:var(--r);--gg:rgba(255,196,0,.45)}
+.gp-overlay.gp-success{--gp:#3ddc84;--gs:#1e9e5a;--gg:rgba(61,220,132,.5)}
+@keyframes gpFade{from{opacity:0}to{opacity:1}}
+.gp-box{position:relative;overflow:hidden;width:min(440px,100%);padding:24px 26px 22px;text-align:center;color:#fff;font:700 15px/1.4 'Trebuchet MS',Arial,sans-serif;background:radial-gradient(rgba(255,196,0,.11) 1.3px,transparent 1.8px) 0 0/11px 11px,linear-gradient(160deg,#2a1214,#0f0a0a);border:4px solid #000;border-radius:16px;box-shadow:0 0 0 4px var(--y),0 0 0 8px #000,10px 10px 0 8px var(--gp),0 0 50px 10px var(--gg);animation:gpPop .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes gpPop{from{opacity:0;transform:scale(.6) rotate(-3deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.gp-rays{position:absolute;left:50%;top:-170px;width:420px;height:420px;margin-left:-210px;border-radius:50%;background:repeating-conic-gradient(rgba(255,196,0,.26) 0 6deg,transparent 6deg 12deg);-webkit-mask-image:radial-gradient(circle,#000 0,transparent 66%);mask-image:radial-gradient(circle,#000 0,transparent 66%);animation:gpSpin 16s linear infinite;pointer-events:none}
+@keyframes gpSpin{to{transform:rotate(360deg)}}
+.gp-icon{position:relative;font-size:58px;line-height:1;filter:drop-shadow(0 0 12px var(--gg)) drop-shadow(3px 3px 0 #000);animation:gpWobble 1.6s ease-in-out infinite}
+.gp-icon .crown{font-size:58px}
+@keyframes gpWobble{0%,100%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(4deg) scale(1.08)}}
+.gp-title{position:relative;margin-top:4px;font:400 50px/1.05 var(--f);letter-spacing:2px;color:var(--y);-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:4px 4px 0 var(--gs),7px 7px 0 #000;transform:rotate(-2deg)}
+.gp-message{position:relative;margin:16px 0 20px;padding:10px 14px;font-size:16px;line-height:1.5;white-space:pre-line;overflow-wrap:anywhere;background:rgba(0,0,0,.55);border-left:6px solid var(--gp);border-radius:4px 10px 10px 4px;text-align:left}
+.gp-actions{position:relative;display:flex;gap:12px}
+.gp-btn{flex:1;min-width:0;padding:11px 10px;cursor:pointer;font:400 24px/1 var(--f);letter-spacing:1px;color:#000;background-color:var(--y);background-image:linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,0) 50%,rgba(0,0,0,.2));border:3px solid #000;border-radius:12px;box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 5px 0 #000;transition:transform .08s,box-shadow .08s}
+.gp-btn:hover{transform:translateY(-2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 7px 0 #000}
+.gp-btn:active{transform:translateY(4px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55)}
+.gp-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.gp-btn.gp-go.gp-danger{color:#fff;background-color:var(--r);text-shadow:2px 2px 0 #000}
+.gp-btn.gp-no{flex:0 0 36%;font-size:20px;color:#ddd;background-color:#1b1b1b;background-image:none;border:2px solid #666;box-shadow:0 4px 0 #000}
+.gp-btn.gp-no:hover{color:#fff;border-color:#aaa;box-shadow:0 6px 0 #000}
+.gp-btn.gp-no:active{box-shadow:none}
+@media(prefers-reduced-motion:reduce){.gp-rays,.gp-icon{animation:none}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-screen">
+
+    <div class="login-box">
+
+        <h1>⚙️ ES Boss Fight</h1>
+
+        <p>
+            Réglages
+        </p>
+
+        <input
+            type="password"
+            id="loginCode"
+            placeholder="Code des réglages"
+            autocomplete="off"
+        >
+
+        <button
+            class="btn-blue"
+            onclick="login()"
+        >
+            🔐 Connexion
+        </button>
+
+        <div
+            id="loginStatus"
+            class="status"
+        ></div>
+
+    </div>
+
+</div>
+
+
+<div
+    id="reglagesScreen"
+    class="container hidden"
+>
+
+    <header>
+
+        <div>
+            <h1>⚙️ Réglages</h1>
+
+            <div class="subtitle">
+                Gestion de l'ES Boss Fight
+            </div>
+        </div>
+
+        <div class="header-buttons">
+
+            <button
+                class="btn-gray"
+                onclick="goToGame()"
+            >
+                🎮 Retour au jeu
+            </button>
+
+            <button
+                class="btn-red"
+                onclick="logout()"
+            >
+                🚪 Déconnexion
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <section class="panel">
+
+        <h2><i class="crown"></i> État du jeu</h2>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Boss actuel</label>
+
+                <div
+                    id="currentBoss"
+                    class="current-boss"
+                >
+                    -
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Points de vie</label>
+
+                <div id="currentHp">
+                    -
+                </div>
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <button
+                class="btn-green"
+                onclick="healBoss()"
+            >
+                ❤️ Soigner le Boss
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2>🎯 Objectif de bataille</h2>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Progression actuelle (tous les joueurs)</label>
+
+                <div
+                    id="currentBattle"
+                    class="current-boss"
+                >
+                    -
+                </div>
+            </div>
+
+            <div class="field">
+
+                <label>
+                    Objectif (ES)
+                </label>
+
+                <input
+                    type="number"
+                    id="battleGoal"
+                    min="1"
+                    step="1"
+                >
+
+            </div>
+
+        </div>
+
+        <div class="info">
+            L'objectif de bataille est affiché en haut de l'écran de combat.
+            Il compte les ES de tous les joueurs ensemble : il repart donc
+            de zéro quand tu réinitialises la partie.
+        </div>
+
+        <br>
+
+        <div class="actions">
+
+            <button
+                class="btn-orange"
+                onclick="saveBattleGoal()"
+            >
+                🎯 Modifier l'objectif
+            </button>
+
+        </div>
+
+        <div
+            id="battleStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2>👥 Ajouter un joueur</h2>
+
+        <div class="grid">
+
+            <div class="field">
+
+                <label>
+                    Nom du joueur
+                </label>
+
+                <input
+                    type="text"
+                    id="newPlayerName"
+                    maxlength="30"
+                    placeholder="Ex : Florian"
+                >
+
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <button
+                class="btn-blue"
+                onclick="addPlayer()"
+            >
+                ➕ Ajouter le joueur
+            </button>
+
+        </div>
+
+        <div
+            id="playerStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2><i class="crown"></i> Gestion du Boss</h2>
+
+        <div class="grid">
+
+            <div class="field">
+
+                <label>
+                    Nouveau Boss
+                </label>
+
+                <select id="bossSelect">
+                </select>
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    PV maximum
+                </label>
+
+                <input
+                    type="number"
+                    id="maxHp"
+                    min="1"
+                    step="1"
+                >
+
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <button
+                class="btn-purple"
+                onclick="changeBoss()"
+            >
+                <i class="crown"></i> Changer le Boss
+            </button>
+
+            <button
+                class="btn-orange"
+                onclick="changeMaxHp()"
+            >
+                ❤️ Modifier les PV max
+            </button>
+
+        </div>
+
+        <div
+            id="bossStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2>🛡️ Équipes</h2>
+
+        <div class="team-create">
+
+            <div class="field">
+
+                <label>
+                    Nom de l'équipe
+                </label>
+
+                <input
+                    type="text"
+                    id="newTeamName"
+                    maxlength="30"
+                    placeholder="Ex : Les Rouges"
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    Couleur
+                </label>
+
+                <input
+                    type="color"
+                    id="newTeamColor"
+                    value="#e30613"
+                >
+
+            </div>
+
+            <button
+                class="btn-blue"
+                onclick="addTeam()"
+            >
+                ➕ Créer l'équipe
+            </button>
+
+        </div>
+
+        <div class="info">
+            Crée tes équipes ici, puis choisis l'équipe de chaque
+            joueur dans la section « Joueurs et photos » ci-dessous.
+            Sans aucune équipe, les joueurs s'affichent normalement.
+            Supprimer une équipe ne supprime pas ses joueurs.
+        </div>
+
+        <br>
+
+        <div id="teamsContainer"></div>
+
+        <div
+            id="teamStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2>👥 Joueurs et photos</h2>
+
+        <div class="info">
+            Chaque joueur possède deux images différentes :
+            une image normale et une image lorsqu'il devient Boss.
+            Les images sont automatiquement redimensionnées avant
+            d'être enregistrées.
+            L'objectif ES est propre à chaque joueur et peut être
+            modifié ici.
+        </div>
+
+        <br>
+
+        <div
+            id="playersContainer"
+            class="players-grid"
+        ></div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2>🔐 Modifier le code des réglages</h2>
+
+        <div class="grid">
+
+            <div class="field">
+
+                <label>
+                    Ancien code
+                </label>
+
+                <input
+                    type="password"
+                    id="oldCode"
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    Nouveau code
+                </label>
+
+                <input
+                    type="password"
+                    id="newCode"
+                >
+
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <button
+                class="btn-blue"
+                onclick="changeCode()"
+            >
+                🔑 Modifier le code
+            </button>
+
+        </div>
+
+        <div
+            id="codeStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+
+    <section class="panel danger-zone">
+
+        <h2>⚠️ Réinitialisation</h2>
+
+        <div class="info">
+            Remet le compteur de ventes à zéro,
+            efface l'historique et conserve les objectifs ES
+            de chaque joueur.
+        </div>
+
+        <div class="actions">
+
+            <button
+                class="btn-red"
+                onclick="resetGame()"
+            >
+                🗑️ Réinitialiser la partie
+            </button>
+
+        </div>
+
+        <div
+            id="resetStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+</div>
+
+
+<script>
+
+/* =========================
+   POP-UP DU JEU (remplace alert() et confirm())
+========================= */
+
+const gamePopupQueue = [];
+let gamePopupBusy = false;
+
+const GAME_POPUP_THEMES = {
+    error:    { icon: "💥",    title: "OUPS !",       cls: "gp-error" },
+    danger:   { icon: "⚠️",    title: "ATTENTION",    cls: "gp-error" },
+    question: { icon: "crown", title: "CONFIRMER",    cls: "gp-question" },
+    success:  { icon: "✅",    title: "C'EST FAIT !", cls: "gp-success" }
+};
+
+function gamePopup(options) {
+
+    return new Promise(resolve => {
+
+        gamePopupQueue.push({
+            options: options || {},
+            resolve
+        });
+
+        gamePopupNext();
+    });
+}
+
+function gamePopupNext() {
+
+    if (gamePopupBusy || gamePopupQueue.length === 0) {
+        return;
+    }
+
+    gamePopupBusy = true;
+
+    const { options, resolve } = gamePopupQueue.shift();
+
+    const theme =
+        GAME_POPUP_THEMES[options.type] ||
+        GAME_POPUP_THEMES.error;
+
+    const isConfirm = !!options.confirm;
+    const isDanger = options.type === "danger" || options.type === "error";
+
+    const overlay = document.createElement("div");
+    overlay.className = "gp-overlay " + theme.cls;
+
+    const box = document.createElement("div");
+    box.className = "gp-box";
+    box.setAttribute("role", isConfirm ? "alertdialog" : "alert");
+    box.setAttribute("aria-modal", "true");
+
+    const rays = document.createElement("div");
+    rays.className = "gp-rays";
+
+    const icon = document.createElement("div");
+    icon.className = "gp-icon";
+
+    const iconValue = options.icon || theme.icon;
+
+    if (iconValue === "crown") {
+
+        const crown = document.createElement("i");
+        crown.className = "crown";
+        icon.appendChild(crown);
+
+    } else {
+
+        icon.textContent = iconValue;
+    }
+
+    const title = document.createElement("div");
+    title.className = "gp-title";
+    title.textContent = options.title || theme.title;
+
+    const message = document.createElement("div");
+    message.className = "gp-message";
+    message.textContent =
+        String(options.message == null ? "" : options.message)
+            .replace(/^- /gm, "• ");
+
+    const actions = document.createElement("div");
+    actions.className = "gp-actions";
+
+    let cancelButton = null;
+
+    if (isConfirm) {
+
+        cancelButton = document.createElement("button");
+        cancelButton.type = "button";
+        cancelButton.className = "gp-btn gp-no";
+        cancelButton.textContent = options.cancelText || "Annuler";
+
+        actions.appendChild(cancelButton);
+    }
+
+    const okButton = document.createElement("button");
+    okButton.type = "button";
+    okButton.className =
+        "gp-btn gp-go" +
+        (options.type === "danger" ? " gp-danger" : "");
+    okButton.textContent =
+        options.confirmText || (isConfirm ? "Confirmer" : "OK");
+
+    actions.appendChild(okButton);
+
+    box.append(rays, icon, title, message, actions);
+    overlay.appendChild(box);
+
+    const close = value => {
+
+        document.removeEventListener("keydown", onKey);
+
+        overlay.remove();
+
+        gamePopupBusy = false;
+
+        resolve(value);
+
+        gamePopupNext();
+    };
+
+    const onKey = event => {
+
+        if (event.key === "Escape") {
+            event.preventDefault();
+            close(!isConfirm);
+        }
+    };
+
+    okButton.addEventListener("click", () => close(true));
+
+    if (cancelButton) {
+        cancelButton.addEventListener("click", () => close(false));
+    }
+
+    overlay.addEventListener("click", event => {
+
+        if (event.target === overlay) {
+            close(!isConfirm);
+        }
+    });
+
+    document.addEventListener("keydown", onKey);
+
+    document.body.appendChild(overlay);
+
+    // Action destructrice : le focus démarre sur "Annuler"
+    // pour qu'un Entrée trop rapide ne valide pas par erreur.
+    (isConfirm && isDanger && cancelButton
+        ? cancelButton
+        : okButton
+    ).focus();
+}
+
+function gameAlert(message, options) {
+
+    return gamePopup(
+        Object.assign({ type: "error", message }, options)
+    );
+}
+
+function gameConfirm(options) {
+
+    return gamePopup(
+        Object.assign({}, options, { confirm: true })
+    );
+}
+
+window.alert = function (message) {
+
+    gameAlert(message);
+};
+
+
+
+let reglagesCode = "";
+let players = [];
+let teams = [];
+let game = null;
+
+
+/* =====================================================
+   UTILITAIRES
+===================================================== */
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+function showStatus(elementId, message, success = true) {
+
+    const element =
+        document.getElementById(elementId);
+
+    element.textContent = message;
+
+    element.className =
+        "status " +
+        (success ? "success" : "error");
+
+}
+
+
+function clearStatus(elementId) {
+
+    const element =
+        document.getElementById(elementId);
+
+    element.textContent = "";
+    element.className = "status";
+
+}
+
+
+/* =====================================================
+   CONNEXION
+===================================================== */
+
+async function login() {
+
+    const code =
+        document.getElementById("loginCode").value;
+
+    if (!code) {
+
+        showStatus(
+            "loginStatus",
+            "Entre le code des réglages.",
+            false
+        );
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showStatus(
+                "loginStatus",
+                data.error || data.message || "Code incorrect.",
+                false
+            );
+
+            return;
+        }
+
+        reglagesCode = code;
+
+        sessionStorage.setItem(
+            "bossfight_reglages_code",
+            code
+        );
+
+        showReglages();
+
+    } catch (error) {
+
+        showStatus(
+            "loginStatus",
+            "Impossible de contacter le serveur.",
+            false
+        );
+
+    }
+
+}
+
+
+function showReglages() {
+
+    document
+        .getElementById("loginScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("reglagesScreen")
+        .classList.remove("hidden");
+
+    loadEverything();
+
+}
+
+
+function logout() {
+
+    reglagesCode = "";
+
+    sessionStorage.removeItem(
+        "bossfight_reglages_code"
+    );
+
+    location.reload();
+
+}
+
+
+/* =====================================================
+   CHARGEMENT
+===================================================== */
+
+async function loadEverything() {
+
+    await Promise.all([
+        loadGame(),
+        loadPlayers()
+    ]);
+
+}
+
+
+/* =====================================================
+   GAME
+===================================================== */
+
+async function loadGame() {
+
+    try {
+
+        const response =
+            await fetch("/api/game");
+
+        game =
+            await response.json();
+
+        document.getElementById(
+            "currentBoss"
+        ).textContent =
+            game.boss_name;
+
+        document.getElementById(
+            "currentHp"
+        ).textContent =
+            game.boss_hp +
+            " / " +
+            game.max_boss_hp;
+
+        document.getElementById(
+            "maxHp"
+        ).value =
+            game.max_boss_hp;
+
+        document.getElementById(
+            "battleGoal"
+        ).value =
+            game.battle_goal || 100;
+
+        renderBattle();
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+
+/* =====================================================
+   PLAYERS
+===================================================== */
+
+async function loadPlayers() {
+
+    try {
+
+        const [
+            playersResponse,
+            teamsResponse
+        ] = await Promise.all([
+            fetch("/api/players"),
+            fetch("/api/teams")
+        ]);
+
+        players =
+            await playersResponse.json();
+
+        teams =
+            await teamsResponse.json();
+
+        renderTeams();
+        renderPlayers();
+        updateBossSelect();
+        renderBattle();
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+
+/* =====================================================
+   AFFICHAGE JOUEURS
+===================================================== */
+
+function renderPlayers() {
+
+    const container =
+        document.getElementById(
+            "playersContainer"
+        );
+
+    if (!players.length) {
+
+        container.innerHTML = `
+            <div class="info">
+                Aucun joueur.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        players.map(player => {
+
+            const normalPhoto =
+                player.photo
+                    ? `
+                        <img
+                            src="${escapeHtml(player.photo)}"
+                            alt="Photo de ${escapeHtml(player.name)}"
+                        >
+                    `
+                    : "👤";
+
+            const bossPhoto =
+                player.boss_photo
+                    ? `
+                        <img
+                            src="${escapeHtml(player.boss_photo)}"
+                            alt="Photo Boss de ${escapeHtml(player.name)}"
+                        >
+                    `
+                    : '<i class="crown"></i>';
+
+            const isBoss =
+                game &&
+                game.boss_name === player.name;
+
+            const esGoal =
+                Number(player.es_goal) > 0
+                    ? Number(player.es_goal)
+                    : 6;
+
+            return `
+
+                <div class="player-card">
+
+                    <div class="player-header">
+
+                        <div>
+
+                            <div class="player-name">
+                                ${escapeHtml(player.name)}
+                                ${isBoss ? ' <i class="crown"></i>' : ""}
+                            </div>
+
+                            <div class="sales">
+                                ${player.sales} ES
+                            </div>
+
+                            <div class="es-goal-box">
+
+                                <label>
+                                    ⚡ Objectif ES
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="es-goal-input"
+                                    id="es-goal-${player.id}"
+                                    min="1"
+                                    step="1"
+                                    value="${esGoal}"
+                                >
+
+                                <button
+                                    class="es-goal-button"
+                                    onclick="saveEsGoal(${player.id})"
+                                >
+                                    💾
+                                </button>
+
+                            </div>
+
+                            <div class="team-box">
+
+                                <label>
+                                    🛡️ Équipe
+                                </label>
+
+                                <select
+                                    class="team-select"
+                                    onchange="setPlayerTeam(${player.id}, this.value)"
+                                >
+                                    <option value="">Sans équipe</option>
+                                    ${teams.map(team => `
+                                        <option
+                                            value="${team.id}"
+                                            ${Number(player.team_id) === team.id ? "selected" : ""}
+                                        >
+                                            ${escapeHtml(team.name)}
+                                        </option>
+                                    `).join("")}
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                        <button
+                            class="btn-red"
+                            onclick="deletePlayer(${player.id}, '${escapeHtml(player.name)}')"
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
+
+
+                    <div class="photos">
+
+
+                        <div class="photo-box">
+
+                            <div class="photo-title">
+                                📷 Joueur
+                            </div>
+
+                            <div class="photo-preview">
+                                ${normalPhoto}
+                            </div>
+
+                            <div class="photo-buttons">
+
+                                <button
+                                    class="btn-blue"
+                                    onclick="choosePhoto(${player.id}, 'normal')"
+                                >
+                                    📷 Choisir
+                                </button>
+
+                                ${
+                                    player.photo
+                                    ? `
+                                        <button
+                                            class="btn-gray"
+                                            onclick="removePhoto(${player.id}, 'normal')"
+                                        >
+                                            🗑️ Retirer
+                                        </button>
+                                    `
+                                    : ""
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="photo-box">
+
+                            <div class="photo-title">
+                                <i class="crown"></i> Boss
+                            </div>
+
+                            <div class="photo-preview">
+                                ${bossPhoto}
+                            </div>
+
+                            <div class="photo-buttons">
+
+                                <button
+                                    class="btn-purple"
+                                    onclick="choosePhoto(${player.id}, 'boss')"
+                                >
+                                    <i class="crown"></i> Choisir
+                                </button>
+
+                                ${
+                                    player.boss_photo
+                                    ? `
+                                        <button
+                                            class="btn-gray"
+                                            onclick="removePhoto(${player.id}, 'boss')"
+                                        >
+                                            🗑️ Retirer
+                                        </button>
+                                    `
+                                    : ""
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+}
+
+
+/* =====================================================
+   OBJECTIF DE BATAILLE
+===================================================== */
+
+function renderBattle() {
+
+    const element =
+        document.getElementById(
+            "currentBattle"
+        );
+
+    if (!element || !game) {
+        return;
+    }
+
+    const total =
+        players.reduce(
+            (sum, player) =>
+                sum + (Number(player.sales) || 0),
+            0
+        );
+
+    element.textContent =
+        total +
+        " sur " +
+        (game.battle_goal || 100) +
+        " ES";
+
+}
+
+
+async function saveBattleGoal() {
+
+    const goal =
+        Number(
+            document
+                .getElementById("battleGoal")
+                .value
+        );
+
+    if (
+        !Number.isInteger(goal) ||
+        goal < 1
+    ) {
+
+        showStatus(
+            "battleStatus",
+            "L'objectif doit être un nombre entier supérieur ou égal à 1.",
+            false
+        );
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/battle-goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    goal
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showStatus(
+                "battleStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        game =
+            data.game;
+
+        renderBattle();
+
+        showStatus(
+            "battleStatus",
+            "Objectif de bataille modifié !"
+        );
+
+    } catch (error) {
+
+        showStatus(
+            "battleStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ÉQUIPES
+===================================================== */
+
+function renderTeams() {
+
+    const container =
+        document.getElementById(
+            "teamsContainer"
+        );
+
+    if (!teams.length) {
+
+        container.innerHTML = `
+            <div class="info">
+                Aucune équipe pour le moment.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        teams.map(team => {
+
+            const members =
+                players
+                    .filter(player =>
+                        Number(player.team_id) === team.id
+                    )
+                    .map(player =>
+                        escapeHtml(player.name)
+                    );
+
+            return `
+
+                <div
+                    class="team-row"
+                    style="--tc:${escapeHtml(team.color)}"
+                >
+
+                    <input
+                        type="color"
+                        id="team-color-${team.id}"
+                        value="${escapeHtml(team.color)}"
+                    >
+
+                    <input
+                        type="text"
+                        id="team-name-${team.id}"
+                        maxlength="30"
+                        value="${escapeHtml(team.name)}"
+                    >
+
+                    <button
+                        class="btn-green"
+                        onclick="saveTeam(${team.id})"
+                    >
+                        💾
+                    </button>
+
+                    <button
+                        class="btn-red"
+                        onclick="deleteTeam(${team.id})"
+                    >
+                        🗑️
+                    </button>
+
+                    <div class="team-members">
+                        ${
+                            members.length
+                                ? "Membres (" + members.length + ") : " + members.join(", ")
+                                : "Aucun joueur dans cette équipe"
+                        }
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+}
+
+
+async function teamRequest(url, body) {
+
+    const response =
+        await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                code: reglagesCode,
+                ...body
+            })
+        });
+
+    const data =
+        await response.json();
+
+    return {
+        ok: response.ok,
+        data
+    };
+
+}
+
+
+function applyTeamData(data) {
+
+    if (data.teams) {
+        teams = data.teams;
+    }
+
+    if (data.players) {
+        players = data.players;
+    }
+
+    renderTeams();
+    renderPlayers();
+    updateBossSelect();
+
+}
+
+
+async function addTeam() {
+
+    const name =
+        document
+            .getElementById("newTeamName")
+            .value
+            .trim();
+
+    const color =
+        document
+            .getElementById("newTeamColor")
+            .value;
+
+    if (!name) {
+
+        showStatus(
+            "teamStatus",
+            "Entre un nom d'équipe.",
+            false
+        );
+
+        return;
+    }
+
+    try {
+
+        const { ok, data } =
+            await teamRequest(
+                "/api/reglages/add-team",
+                { name, color }
+            );
+
+        if (!ok) {
+
+            showStatus(
+                "teamStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        document
+            .getElementById("newTeamName")
+            .value = "";
+
+        applyTeamData(data);
+
+        showStatus(
+            "teamStatus",
+            "Équipe créée !"
+        );
+
+    } catch (error) {
+
+        showStatus(
+            "teamStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+async function saveTeam(teamId) {
+
+    const name =
+        document
+            .getElementById(`team-name-${teamId}`)
+            .value
+            .trim();
+
+    const color =
+        document
+            .getElementById(`team-color-${teamId}`)
+            .value;
+
+    if (!name) {
+
+        showStatus(
+            "teamStatus",
+            "Le nom de l'équipe ne peut pas être vide.",
+            false
+        );
+
+        return;
+    }
+
+    try {
+
+        const { ok, data } =
+            await teamRequest(
+                "/api/reglages/update-team",
+                { teamId, name, color }
+            );
+
+        if (!ok) {
+
+            showStatus(
+                "teamStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        applyTeamData(data);
+
+        showStatus(
+            "teamStatus",
+            "Équipe modifiée !"
+        );
+
+    } catch (error) {
+
+        showStatus(
+            "teamStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+async function deleteTeam(teamId) {
+
+    const team =
+        teams.find(t => t.id === teamId);
+
+    if (!team) {
+        return;
+    }
+
+    if (
+        !(await gameConfirm({
+            type: "danger",
+            icon: "🗑️",
+            title: "SUPPRIMER ?",
+            message: `Supprimer l'équipe "${team.name}" ?\nSes joueurs ne sont pas supprimés, ils n'auront simplement plus d'équipe.`,
+            confirmText: "Supprimer"
+        }))
+    ) {
+        return;
+    }
+
+    try {
+
+        const { ok, data } =
+            await teamRequest(
+                "/api/reglages/delete-team",
+                { teamId }
+            );
+
+        if (!ok) {
+
+            showStatus(
+                "teamStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        applyTeamData(data);
+
+        showStatus(
+            "teamStatus",
+            "Équipe supprimée."
+        );
+
+    } catch (error) {
+
+        showStatus(
+            "teamStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+async function setPlayerTeam(playerId, teamId) {
+
+    try {
+
+        const { ok, data } =
+            await teamRequest(
+                "/api/reglages/player-team",
+                {
+                    playerId,
+                    teamId: teamId === "" ? null : Number(teamId)
+                }
+            );
+
+        if (!ok) {
+
+            alert(
+                data.error ||
+                data.message ||
+                "Impossible de changer l'équipe."
+            );
+
+            await loadPlayers();
+
+            return;
+        }
+
+        applyTeamData(data);
+
+    } catch (error) {
+
+        alert(
+            "Erreur de connexion au serveur."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   OBJECTIF ES
+===================================================== */
+
+async function saveEsGoal(playerId) {
+
+    const input =
+        document.getElementById(
+            `es-goal-${playerId}`
+        );
+
+    if (!input) {
+        return;
+    }
+
+    const esGoal =
+        Number(input.value);
+
+    if (
+        !Number.isInteger(esGoal) ||
+        esGoal < 1
+    ) {
+
+        alert(
+            "L'objectif ES doit être un nombre entier supérieur ou égal à 1."
+        );
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/player-goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    playerId,
+                    esGoal
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                data.error ||
+                data.message ||
+                "Impossible de modifier l'objectif ES."
+            );
+
+            return;
+        }
+
+        players =
+            data.players;
+
+        renderPlayers();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Erreur de connexion au serveur."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   SELECT BOSS
+===================================================== */
+
+function updateBossSelect() {
+
+    const select =
+        document.getElementById(
+            "bossSelect"
+        );
+
+    select.innerHTML =
+        players.map(player => `
+
+            <option
+                value="${escapeHtml(player.name)}"
+                ${game && game.boss_name === player.name ? "selected" : ""}
+            >
+                ${escapeHtml(player.name)}
+            </option>
+
+        `).join("");
+
+}
+
+
+/* =====================================================
+   AJOUT JOUEUR
+===================================================== */
+
+async function addPlayer() {
+
+    const name =
+        document
+            .getElementById("newPlayerName")
+            .value
+            .trim();
+
+    if (!name) {
+
+        showStatus(
+            "playerStatus",
+            "Entre un nom.",
+            false
+        );
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/add-player", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    name
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showStatus(
+                "playerStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        document
+            .getElementById("newPlayerName")
+            .value = "";
+
+        showStatus(
+            "playerStatus",
+            "Joueur ajouté !"
+        );
+
+        await loadPlayers();
+
+    } catch (error) {
+
+        showStatus(
+            "playerStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   SUPPRIMER JOUEUR
+===================================================== */
+
+async function deletePlayer(id, name) {
+
+    if (
+        !(await gameConfirm({
+            type: "danger",
+            icon: "🗑️",
+            title: "SUPPRIMER ?",
+            message: `Supprimer le joueur "${name}" ?`,
+            confirmText: "Supprimer"
+        }))
+    ) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/delete-player", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    playerId: id
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                data.error ||
+                data.message ||
+                "Impossible de supprimer le joueur."
+            );
+
+            return;
+        }
+
+        await loadEverything();
+
+    } catch (error) {
+
+        alert(
+            "Erreur de connexion au serveur."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   CHOIX IMAGE
+===================================================== */
+
+function choosePhoto(playerId, type) {
+
+    const input =
+        document.createElement("input");
+
+    input.type = "file";
+
+    input.accept =
+        "image/jpeg,image/png,image/webp";
+
+    input.onchange = async function() {
+
+        const file =
+            input.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        try {
+
+            const imageData =
+                await resizeImage(file);
+
+            await savePhoto(
+                playerId,
+                type,
+                imageData
+            );
+
+        } catch (error) {
+
+            alert(
+                "Impossible de traiter cette image."
+            );
+
+            console.error(error);
+
+        }
+
+    };
+
+    input.click();
+
+}
+
+
+/* =====================================================
+   REDIMENSIONNEMENT IMAGE
+===================================================== */
+
+function resizeImage(file) {
+
+    return new Promise((resolve, reject) => {
+
+        const reader =
+            new FileReader();
+
+        reader.onload = function(event) {
+
+            const img =
+                new Image();
+
+            img.onload = function() {
+
+                const maxSize = 800;
+
+                let width =
+                    img.naturalWidth;
+
+                let height =
+                    img.naturalHeight;
+
+                if (
+                    width > maxSize ||
+                    height > maxSize
+                ) {
+
+                    const ratio =
+                        Math.min(
+                            maxSize / width,
+                            maxSize / height
+                        );
+
+                    width =
+                        Math.round(
+                            width * ratio
+                        );
+
+                    height =
+                        Math.round(
+                            height * ratio
+                        );
+
+                }
+
+                const canvas =
+                    document.createElement("canvas");
+
+                canvas.width =
+                    width;
+
+                canvas.height =
+                    height;
+
+                const context =
+                    canvas.getContext("2d");
+
+                context.drawImage(
+                    img,
+                    0,
+                    0,
+                    width,
+                    height
+                );
+
+                const result =
+                    canvas.toDataURL(
+                        "image/jpeg",
+                        0.82
+                    );
+
+                resolve(result);
+
+            };
+
+            img.onerror =
+                reject;
+
+            img.src =
+                event.target.result;
+
+        };
+
+        reader.onerror =
+            reject;
+
+        reader.readAsDataURL(file);
+
+    });
+
+}
+
+
+/* =====================================================
+   ENREGISTRER PHOTO
+===================================================== */
+
+async function savePhoto(
+    playerId,
+    type,
+    imageData
+) {
+
+    const endpoint =
+        type === "boss"
+            ? "/api/reglages/boss-photo"
+            : "/api/reglages/player-photo";
+
+    try {
+
+        const response =
+            await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    playerId,
+                    photo: imageData
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                data.error ||
+                data.message ||
+                "Impossible d'enregistrer la photo."
+            );
+
+            return;
+        }
+
+        await loadEverything();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Erreur de connexion au serveur."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   SUPPRIMER PHOTO
+===================================================== */
+
+async function removePhoto(
+    playerId,
+    type
+) {
+
+    const message =
+        type === "boss"
+            ? "Retirer la photo Boss ?"
+            : "Retirer la photo du joueur ?";
+
+    if (!(await gameConfirm({
+        type: "danger",
+        icon: "🗑️",
+        title: "RETIRER ?",
+        message,
+        confirmText: "Retirer"
+    }))) {
+        return;
+    }
+
+    const endpoint =
+        type === "boss"
+            ? "/api/reglages/boss-photo"
+            : "/api/reglages/player-photo";
+
+    try {
+
+        const response =
+            await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    playerId,
+                    photo: ""
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                data.error ||
+                data.message ||
+                "Impossible de retirer la photo."
+            );
+
+            return;
+        }
+
+        await loadEverything();
+
+    } catch (error) {
+
+        alert(
+            "Erreur de connexion au serveur."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   CHANGER BOSS
+===================================================== */
+
+async function changeBoss() {
+
+    const bossName =
+        document
+            .getElementById("bossSelect")
+            .value;
+
+    if (!bossName) {
+        return;
+    }
+
+    if (
+        !(await gameConfirm({
+            type: "question",
+            icon: "crown",
+            title: "NOUVEAU BOSS ?",
+            message: `Faire de ${bossName} le nouveau Boss ?`,
+            confirmText: "Couronner"
+        }))
+    ) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/change-boss", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    player: bossName
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showStatus(
+                "bossStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        showStatus(
+            "bossStatus",
+            `${bossName} est maintenant le Boss !`
+        );
+
+        await loadEverything();
+
+    } catch (error) {
+
+        showStatus(
+            "bossStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   MODIFIER PV MAX
+===================================================== */
+
+async function changeMaxHp() {
+
+    const maxHp =
+        Number(
+            document
+                .getElementById("maxHp")
+                .value
+        );
+
+    if (
+        !Number.isInteger(maxHp) ||
+        maxHp < 1
+    ) {
+
+        showStatus(
+            "bossStatus",
+            "Valeur de PV incorrecte.",
+            false
+        );
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/max-hp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    maxHp
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showStatus(
+                "bossStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        showStatus(
+            "bossStatus",
+            `PV maximum réglés à ${maxHp}.`
+        );
+
+        await loadGame();
+
+    } catch (error) {
+
+        showStatus(
+            "bossStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   SOIGNER BOSS
+===================================================== */
+
+async function healBoss() {
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/heal-boss", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                data.error ||
+                data.message ||
+                "Impossible de soigner le Boss."
+            );
+
+            return;
+        }
+
+        await loadGame();
+
+    } catch (error) {
+
+        alert(
+            "Erreur de connexion."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   CHANGER CODE
+===================================================== */
+
+async function changeCode() {
+
+    const oldCode =
+        document
+            .getElementById("oldCode")
+            .value;
+
+    const newCode =
+        document
+            .getElementById("newCode")
+            .value;
+
+    if (!oldCode || !newCode) {
+
+        showStatus(
+            "codeStatus",
+            "Remplis les deux champs.",
+            false
+        );
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/change-code", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    oldCode,
+                    newCode
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showStatus(
+                "codeStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        reglagesCode =
+            newCode;
+
+        sessionStorage.setItem(
+            "bossfight_reglages_code",
+            newCode
+        );
+
+        document
+            .getElementById("oldCode")
+            .value = "";
+
+        document
+            .getElementById("newCode")
+            .value = "";
+
+        showStatus(
+            "codeStatus",
+            "Code des réglages modifié !"
+        );
+
+    } catch (error) {
+
+        showStatus(
+            "codeStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+async function resetGame() {
+
+    const confirmation = await gameConfirm({
+        type: "danger",
+        title: "ATTENTION",
+        message:
+            "Cette action va :\n" +
+            "- remettre toutes les ventes à 0\n" +
+            "- effacer l'historique\n" +
+            "- conserver le Boss actuel\n" +
+            "- conserver les objectifs ES\n\n" +
+            "Continuer ?",
+        confirmText: "Réinitialiser"
+    });
+
+    if (!confirmation) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/reset", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showStatus(
+                "resetStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        showStatus(
+            "resetStatus",
+            "Partie réinitialisée !"
+        );
+
+        await loadEverything();
+
+    } catch (error) {
+
+        showStatus(
+            "resetStatus",
+            "Erreur de connexion.",
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   RETOUR JEU
+===================================================== */
+
+function goToGame() {
+
+    window.location.href =
+        "/index.html";
+
+}
+
+
+/* =====================================================
+   AUTO CONNEXION
+===================================================== */
+
+window.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        const savedCode =
+            sessionStorage.getItem(
+                "bossfight_reglages_code"
+            );
+
+        if (savedCode) {
+
+            reglagesCode =
+                savedCode;
+
+            showReglages();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
