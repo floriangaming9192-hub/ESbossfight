@@ -3,7 +3,7 @@ const path = require("path");
 const Database = require("better-sqlite3");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 const db = new Database("bossfight.db");
 
@@ -74,10 +74,28 @@ addColumnIfMissing("players", "photo", "TEXT DEFAULT ''");
 addColumnIfMissing("players", "boss_photo", "TEXT DEFAULT ''");
 addColumnIfMissing("players", "special_used", "INTEGER DEFAULT 0");
 addColumnIfMissing("players", "team_id", "INTEGER");
+addColumnIfMissing("players", "bonus_special_used", "INTEGER DEFAULT 0");
+// ES du joueur au moment où l'événement « One Shot bonus » a été activé :
+// seuls les ES gagnés ensuite comptent pour atteindre les 4 ES.
+addColumnIfMissing("players", "bonus_base", "INTEGER DEFAULT 0");
+// Pouvoir « Full Heal + bouclier » (double de l'objectif ES), usage unique
+addColumnIfMissing("players", "heal_power_used", "INTEGER DEFAULT 0");
 
 addColumnIfMissing("game", "boss_photo", "TEXT DEFAULT ''");
 addColumnIfMissing("game", "boss_shield", "INTEGER DEFAULT 0");
 addColumnIfMissing("game", "battle_goal", "INTEGER DEFAULT 100");
+
+// Événements spéciaux (activés / désactivés depuis les réglages)
+addColumnIfMissing("game", "event_double_damage", "INTEGER DEFAULT 0");
+addColumnIfMissing("game", "event_extra_oneshot", "INTEGER DEFAULT 0");
+
+// Événement « One Shot bonus » : nombre d'ES qu'il faut atteindre
+const BONUS_ONE_SHOT_ES = 4;
+
+// Pouvoir « Full Heal + bouclier » : débloqué à (objectif ES x 2).
+// Le bouclier obtenu vaut (PV max x ratio) : 1 = bouclier plein.
+const HEAL_POWER_GOAL_MULTIPLIER = 2;
+const HEAL_POWER_SHIELD_RATIO = 1;
 
 // Migration : renomme l'ancienne colonne admin_code en reglages_code
 const settingsColumns = db.prepare("PRAGMA table_info(settings)").all();
@@ -170,6 +188,8 @@ function getGame() {
 }
 
 function getPlayers() {
+  const bonusEventOn = !!getGame().event_extra_oneshot;
+
   return db.prepare(`
     SELECT
       id,
@@ -179,6 +199,9 @@ function getPlayers() {
       photo,
       boss_photo,
       special_used,
+      bonus_special_used,
+      bonus_base,
+      heal_power_used,
       team_id,
       CASE
         WHEN sales >= es_goal AND special_used = 0 THEN 1
@@ -186,7 +209,20 @@ function getPlayers() {
       END AS special_available
     FROM players
     ORDER BY id
-  `).all();
+  `).all().map(player => ({
+    ...player,
+    heal_power_available:
+      player.sales >= player.es_goal * HEAL_POWER_GOAL_MULTIPLIER &&
+      !player.heal_power_used
+        ? 1
+        : 0,
+    bonus_special_available:
+      bonusEventOn &&
+      player.sales - (player.bonus_base || 0) >= BONUS_ONE_SHOT_ES &&
+      !player.bonus_special_used
+        ? 1
+        : 0
+  }));
 }
 
 function getTeams() {
@@ -420,8 +456,14 @@ app.post("/api/attack", (req, res) => {
   const previousPlayerSales = attacker.sales;
   const previousBossShield = currentGame.boss_shield || 0;
 
+  // Événement « Dégât doublé » : les dégâts infligés au Boss sont x2.
+  // Le compteur ES du joueur, lui, reste calculé sur l'attaque d'origine.
+  const doubled = !!currentGame.event_double_damage;
+  const dealt = doubled ? amount * 2 : amount;
+  const doubledTag = doubled ? " — x2 💥" : "";
+
   // Le bouclier absorbe les dégâts en premier
-  let remainingDamage = amount;
+  let remainingDamage = dealt;
   let newBossShield = previousBossShield;
 
   if (newBossShield > 0) {
@@ -456,7 +498,7 @@ app.post("/api/attack", (req, res) => {
     `).run(player);
 
     action =
-      `${player} met une ${label} (${amount} dégât${amount > 1 ? "s" : ""}) et devient le nouveau Boss`;
+      `${player} met une ${label} (${dealt} dégât${dealt > 1 ? "s" : ""}${doubledTag}) et devient le nouveau Boss`;
 
     db.prepare(`
       INSERT INTO history
@@ -477,7 +519,7 @@ app.post("/api/attack", (req, res) => {
     `).run(
       player,
       action,
-      -amount,
+      -dealt,
       player,
       currentGame.max_boss_hp,
       attacker.id,
@@ -495,7 +537,7 @@ app.post("/api/attack", (req, res) => {
     `).run(newBossHp, newBossShield);
 
     action =
-      `${player} met une ${label} (${amount} dégât${amount > 1 ? "s" : ""})`;
+      `${player} met une ${label} (${dealt} dégât${dealt > 1 ? "s" : ""}${doubledTag})`;
 
     db.prepare(`
       INSERT INTO history
@@ -516,7 +558,7 @@ app.post("/api/attack", (req, res) => {
     `).run(
       player,
       action,
-      -amount,
+      -dealt,
       currentGame.boss_name,
       newBossHp,
       attacker.id,
@@ -538,13 +580,15 @@ app.post("/api/attack", (req, res) => {
 
   res.json({
     success: true,
+    damage: dealt,
     game: getGame(),
     players: getPlayers()
   });
 });
 
 app.post("/api/special", (req, res) => {
-  const { player } = req.body;
+  const { player, bonus } = req.body;
+  const isBonus = !!bonus;
 
   if (!player) {
     return res.status(400).json({
@@ -575,18 +619,41 @@ app.post("/api/special", (req, res) => {
     });
   }
 
-  if (attacker.sales < attacker.es_goal) {
-    return res.status(400).json({
-      success: false,
-      message: "Objectif ES non atteint"
-    });
-  }
+  if (isBonus) {
+    if (!currentGame.event_extra_oneshot) {
+      return res.status(400).json({
+        success: false,
+        message: "L'événement One Shot bonus n'est pas activé"
+      });
+    }
 
-  if (attacker.special_used) {
-    return res.status(400).json({
-      success: false,
-      message: "Pouvoir spécial déjà utilisé"
-    });
+    if (attacker.sales - (attacker.bonus_base || 0) < BONUS_ONE_SHOT_ES) {
+      return res.status(400).json({
+        success: false,
+        message: `Il faut ${BONUS_ONE_SHOT_ES} nouveaux ES depuis l'activation de l'événement pour le One Shot bonus`
+      });
+    }
+
+    if (attacker.bonus_special_used) {
+      return res.status(400).json({
+        success: false,
+        message: "One Shot bonus déjà utilisé"
+      });
+    }
+  } else {
+    if (attacker.sales < attacker.es_goal) {
+      return res.status(400).json({
+        success: false,
+        message: "Objectif ES non atteint"
+      });
+    }
+
+    if (attacker.special_used) {
+      return res.status(400).json({
+        success: false,
+        message: "Pouvoir spécial déjà utilisé"
+      });
+    }
   }
 
   const previousBossName = currentGame.boss_name;
@@ -595,7 +662,7 @@ app.post("/api/special", (req, res) => {
 
   db.prepare(`
     UPDATE players
-    SET special_used = 1
+    SET ${isBonus ? "bonus_special_used" : "special_used"} = 1
     WHERE id = ?
   `).run(attacker.id);
 
@@ -608,7 +675,7 @@ app.post("/api/special", (req, res) => {
   `).run(player);
 
   const action =
-    `${player} utilise ☠️ ONE SHOT et devient le nouveau Boss`;
+    `${player} utilise ☠️ ONE SHOT${isBonus ? " BONUS" : ""} et devient le nouveau Boss`;
 
   db.prepare(`
     INSERT INTO history
@@ -636,7 +703,7 @@ app.post("/api/special", (req, res) => {
     previousPlayerSales,
     previousBossName,
     previousBossHp,
-    "special"
+    isBonus ? "special_bonus" : "special"
   );
 
   // Dernière ligne d'historique = le One Shot qu'on vient d'insérer
@@ -654,6 +721,133 @@ app.post("/api/special", (req, res) => {
     players: getPlayers()
   });
 });
+/* =====================================================
+   FULL HEAL + BOUCLIER (double de l'objectif ES, Boss uniquement)
+===================================================== */
+
+app.post("/api/heal-power", (req, res) => {
+  const { player } = req.body;
+
+  if (!player) {
+    return res.status(400).json({
+      success: false,
+      message: "Joueur manquant"
+    });
+  }
+
+  const currentGame = getGame();
+
+  const user = db.prepare(`
+    SELECT *
+    FROM players
+    WHERE name = ?
+  `).get(player);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "Joueur introuvable"
+    });
+  }
+
+  if (player !== currentGame.boss_name) {
+    return res.status(400).json({
+      success: false,
+      message: "Seul le Boss peut utiliser le Full Heal"
+    });
+  }
+
+  if (user.sales < user.es_goal * HEAL_POWER_GOAL_MULTIPLIER) {
+    return res.status(400).json({
+      success: false,
+      message: "Il faut atteindre le double de ton objectif ES"
+    });
+  }
+
+  if (user.heal_power_used) {
+    return res.status(400).json({
+      success: false,
+      message: "Full Heal déjà utilisé"
+    });
+  }
+
+  const previousShield = currentGame.boss_shield || 0;
+
+  const newShield = Math.round(
+    currentGame.max_boss_hp * HEAL_POWER_SHIELD_RATIO
+  );
+
+  if (
+    currentGame.boss_hp >= currentGame.max_boss_hp &&
+    previousShield >= newShield
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Le Boss a déjà tous ses PV et un bouclier au maximum"
+    });
+  }
+
+  const healed = currentGame.max_boss_hp - currentGame.boss_hp;
+
+  const usePower = db.transaction(() => {
+    db.prepare(`
+      UPDATE players
+      SET heal_power_used = 1
+      WHERE id = ?
+    `).run(user.id);
+
+    db.prepare(`
+      UPDATE game
+      SET boss_hp = max_boss_hp,
+          boss_shield = ?
+      WHERE id = 1
+    `).run(newShield);
+
+    db.prepare(`
+      INSERT INTO history
+      (
+        player,
+        action,
+        hp_change,
+        boss_name,
+        boss_hp,
+        player_id,
+        previous_player_sales,
+        previous_boss_name,
+        previous_boss_hp,
+        previous_boss_shield,
+        undone,
+        action_type
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+    `).run(
+      player,
+      `${player} utilise 💚 FULL HEAL (${healed} PV + ${newShield} bouclier 🛡️)`,
+      healed,
+      currentGame.boss_name,
+      currentGame.max_boss_hp,
+      user.id,
+      user.sales,
+      currentGame.boss_name,
+      currentGame.boss_hp,
+      previousShield,
+      "heal_power"
+    );
+  });
+
+  usePower();
+
+  syncBossPhoto();
+
+  res.json({
+    success: true,
+    healed,
+    shield: newShield,
+    game: getGame(),
+    players: getPlayers()
+  });
+});
+
 app.post("/api/sell", (req, res) => {
   const { player } = req.body;
 
@@ -921,10 +1115,20 @@ app.post("/api/undo-my-last-sale", (req, res) => {
           special_used = CASE
             WHEN ? = 'special' THEN 0
             ELSE special_used
+          END,
+          bonus_special_used = CASE
+            WHEN ? = 'special_bonus' THEN 0
+            ELSE bonus_special_used
+          END,
+          heal_power_used = CASE
+            WHEN ? = 'heal_power' THEN 0
+            ELSE heal_power_used
           END
       WHERE id = ?
     `).run(
       last.previous_player_sales,
+      last.action_type,
+      last.action_type,
       last.action_type,
       attacker.id
     );
@@ -1147,6 +1351,129 @@ app.post("/api/reglages/player-goal", (req, res) => {
 
   res.json({
     success: true,
+    players: getPlayers()
+  });
+});
+
+/* =====================================================
+   MODIFIER LES ES D'UN JOUEUR (réglages)
+===================================================== */
+
+app.post("/api/reglages/player-sales", (req, res) => {
+  const { code, playerId, sales } = req.body;
+
+  if (!reglagesCodeIsValid(code)) {
+    return res.status(401).json({
+      success: false,
+      message: "Code incorrect"
+    });
+  }
+
+  const value = Number(sales);
+
+  if (!Number.isInteger(value) || value < 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Les ES doivent être un nombre entier supérieur ou égal à 0"
+    });
+  }
+
+  const player = db.prepare(`
+    SELECT *
+    FROM players
+    WHERE id = ?
+  `).get(playerId);
+
+  if (!player) {
+    return res.status(404).json({
+      success: false,
+      message: "Joueur introuvable"
+    });
+  }
+
+  const currentGame = getGame();
+
+  // On garde une trace dans l'historique. Cette ligne n'est pas annulable
+  // et empêche d'annuler une action plus ancienne qui écraserait la correction.
+  const edit = db.transaction(() => {
+    db.prepare(`
+      UPDATE players
+      SET sales = ?
+      WHERE id = ?
+    `).run(value, player.id);
+
+    db.prepare(`
+      INSERT INTO history
+      (
+        player,
+        action,
+        hp_change,
+        boss_name,
+        boss_hp,
+        undone,
+        action_type
+      )
+      VALUES (?, ?, 0, ?, ?, 0, ?)
+    `).run(
+      "Réglages",
+      `⚙️ Réglages : ES de ${player.name} ${player.sales} → ${value}`,
+      currentGame.boss_name,
+      currentGame.boss_hp,
+      "admin"
+    );
+  });
+
+  edit();
+
+  res.json({
+    success: true,
+    players: getPlayers()
+  });
+});
+
+/* =====================================================
+   ÉVÉNEMENTS SPÉCIAUX (réglages)
+===================================================== */
+
+app.post("/api/reglages/events", (req, res) => {
+  const { code, doubleDamage, extraOneShot } = req.body;
+
+  if (!reglagesCodeIsValid(code)) {
+    return res.status(401).json({
+      success: false,
+      message: "Code incorrect"
+    });
+  }
+
+  const wasExtraOneShot = !!getGame().event_extra_oneshot;
+
+  const saveEvents = db.transaction(() => {
+    db.prepare(`
+      UPDATE game
+      SET event_double_damage = ?,
+          event_extra_oneshot = ?
+      WHERE id = 1
+    `).run(
+      doubleDamage ? 1 : 0,
+      extraOneShot ? 1 : 0
+    );
+
+    // À chaque activation du One Shot bonus, on repart de zéro :
+    // les ES déjà acquis ne comptent pas, il faut en gagner 4 nouveaux.
+    if (extraOneShot && !wasExtraOneShot) {
+      db.prepare(`
+        UPDATE players
+        SET bonus_base = sales,
+            bonus_special_used = 0
+      `).run();
+    }
+  });
+
+  saveEvents();
+
+  res.json({
+    success: true,
+    game: getGame(),
     players: getPlayers()
   });
 });
@@ -1568,7 +1895,10 @@ app.post("/api/reglages/reset", (req, res) => {
 
 db.prepare(`
   UPDATE players
-  SET special_used = 0
+  SET special_used = 0,
+      bonus_special_used = 0,
+      bonus_base = 0,
+      heal_power_used = 0
 `).run();
 
   db.prepare(`

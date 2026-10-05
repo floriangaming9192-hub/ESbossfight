@@ -63,6 +63,10 @@ button:active{transform:translateY(3px);box-shadow:none}
 .es-goal-box label{font-size:13px;color:var(--yl);white-space:nowrap}
 .es-goal-input{width:70px;padding:5px 8px}
 .es-goal-button{padding:3px 10px;font-size:16px;background:var(--y)}
+.event-row{display:flex;align-items:flex-start;gap:14px;padding:12px 14px;margin-bottom:12px;background:rgba(0,0,0,.45);border:2px dashed rgba(255,196,0,.45);border-radius:10px;cursor:pointer}
+.event-row input[type=checkbox]{flex:0 0 auto;width:28px;height:28px;margin:2px 0 0;padding:0;accent-color:var(--y);cursor:pointer}
+.event-row .event-title{font:400 22px var(--f);letter-spacing:1px;color:var(--y)}
+.event-row .event-desc{margin-top:2px;font-size:14px;color:#ddd}
 .photos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .photo-box{padding:8px;text-align:center;background:rgba(0,0,0,.45);border:2px dashed rgba(255,196,0,.45);border-radius:10px}
 .photo-title{margin-bottom:8px;font:400 18px var(--f);color:var(--yl)}
@@ -283,6 +287,57 @@ input[type=color]{width:56px;height:42px;padding:2px;cursor:pointer;flex:0 0 aut
 
         <div
             id="battleStatus"
+            class="status"
+        ></div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2>🎉 Événements spéciaux</h2>
+
+        <label class="event-row" for="eventDoubleDamage">
+
+            <input
+                type="checkbox"
+                id="eventDoubleDamage"
+                onchange="saveEvents()"
+            >
+
+            <div>
+                <div class="event-title">💥 Dégât doublé</div>
+                <div class="event-desc">
+                    Toutes les attaques sur le Boss font le double de dégâts
+                    (Simple = 2, Double = 6, Triple = 12). Le compteur ES des
+                    joueurs, les soins et le bouclier ne changent pas.
+                </div>
+            </div>
+
+        </label>
+
+        <label class="event-row" for="eventExtraOneShot">
+
+            <input
+                type="checkbox"
+                id="eventExtraOneShot"
+                onchange="saveEvents()"
+            >
+
+            <div>
+                <div class="event-title">☠️ One Shot bonus à 4 ES</div>
+                <div class="event-desc">
+                    Dès qu'un joueur gagne 4 ES après l'activation de
+                    l'événement, il obtient un One Shot supplémentaire
+                    (utilisable une fois), en plus de celui de son objectif.
+                    Les ES déjà acquis au moment de l'activation ne comptent pas.
+                </div>
+            </div>
+
+        </label>
+
+        <div
+            id="eventsStatus"
             class="status"
         ></div>
 
@@ -933,6 +988,16 @@ async function loadGame() {
         ).value =
             game.battle_goal || 100;
 
+        document.getElementById(
+            "eventDoubleDamage"
+        ).checked =
+            !!Number(game.event_double_damage);
+
+        document.getElementById(
+            "eventExtraOneShot"
+        ).checked =
+            !!Number(game.event_extra_oneshot);
+
         renderBattle();
 
     } catch (error) {
@@ -1049,6 +1114,30 @@ function renderPlayers() {
 
                             <div class="sales">
                                 ${player.sales} ES
+                            </div>
+
+                            <div class="es-goal-box">
+
+                                <label>
+                                    ✏️ ES actuels
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="es-goal-input"
+                                    id="es-sales-${player.id}"
+                                    min="0"
+                                    step="1"
+                                    value="${Number(player.sales) || 0}"
+                                >
+
+                                <button
+                                    class="es-goal-button"
+                                    onclick="saveSales(${player.id})"
+                                >
+                                    💾
+                                </button>
+
                             </div>
 
                             <div class="es-goal-box">
@@ -1728,6 +1817,151 @@ async function saveEsGoal(playerId) {
 
         alert(
             "Erreur de connexion au serveur."
+        );
+
+    }
+
+}
+
+
+async function saveSales(playerId) {
+
+    const input =
+        document.getElementById(
+            `es-sales-${playerId}`
+        );
+
+    if (!input) {
+        return;
+    }
+
+    const sales =
+        Number(input.value);
+
+    if (
+        input.value === "" ||
+        !Number.isInteger(sales) ||
+        sales < 0
+    ) {
+
+        alert(
+            "Les ES doivent être un nombre entier supérieur ou égal à 0."
+        );
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/player-sales", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    playerId,
+                    sales
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                data.error ||
+                data.message ||
+                "Impossible de modifier les ES."
+            );
+
+            return;
+        }
+
+        players =
+            data.players;
+
+        renderPlayers();
+        renderBattle();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Erreur de connexion au serveur."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ÉVÉNEMENTS SPÉCIAUX
+===================================================== */
+
+async function saveEvents() {
+
+    const doubleBox =
+        document.getElementById("eventDoubleDamage");
+
+    const oneShotBox =
+        document.getElementById("eventExtraOneShot");
+
+    try {
+
+        const response =
+            await fetch("/api/reglages/events", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: reglagesCode,
+                    doubleDamage: doubleBox.checked,
+                    extraOneShot: oneShotBox.checked
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            // On remet les cases dans l'état réel du serveur
+            await loadGame();
+
+            showStatus(
+                "eventsStatus",
+                data.error || data.message || "Erreur.",
+                false
+            );
+
+            return;
+        }
+
+        game =
+            data.game;
+
+        players =
+            data.players;
+
+        showStatus(
+            "eventsStatus",
+            "Événements enregistrés !"
+        );
+
+    } catch (error) {
+
+        await loadGame();
+
+        showStatus(
+            "eventsStatus",
+            "Erreur de connexion.",
+            false
         );
 
     }
