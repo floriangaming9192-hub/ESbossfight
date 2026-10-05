@@ -1,0 +1,3342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+<title>ES Boss Fight</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet"><style>
+:root{--y:#ffc400;--yl:#ffe45c;--r:#e30613;--k:#0a0a0a;--f:'Bangers','Impact','Arial Black',sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;color:#fff;font:700 14px/1.3 'Trebuchet MS',Arial,sans-serif}
+body{background:radial-gradient(ellipse at 50% 25%,transparent 15%,rgba(0,0,0,.7) 85%),repeating-conic-gradient(from 0deg at 50% 25%,#240508 0 5deg,#0a0a0a 5deg 10deg)}
+button{font-family:inherit}
+
+/* HEADER */
+header{position:relative;z-index:10;flex:0 0 60px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:repeating-linear-gradient(-45deg,#0a0a0a 0 18px,#1c1c1c 18px 36px);box-shadow:0 4px 0 var(--y),0 7px 0 #000,0 11px 0 var(--r)}
+header h1{margin:0;font:400 38px/1 var(--f);letter-spacing:2px;text-transform:uppercase;color:var(--y);-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:3px 3px 0 var(--r),5px 5px 0 #000;transform:rotate(-2deg)}
+.battle-goal{flex:0 1 400px;min-width:0;display:flex;flex-direction:column;gap:3px;padding:3px 14px 5px;background:linear-gradient(160deg,#201213,#0f0a0a);border:3px solid #000;border-radius:10px;box-shadow:0 0 0 3px var(--y),3px 3px 0 3px #000}
+.bg-top{display:flex;justify-content:space-between;align-items:baseline;gap:14px;white-space:nowrap}
+.bg-label{font:400 15px/1.2 var(--f);letter-spacing:1px;text-transform:uppercase;color:var(--yl)}
+.bg-value{font:400 22px/1.1 var(--f);letter-spacing:1px;color:#fff}
+.bg-value b{font-weight:400;color:var(--y)}
+.bg-bar{position:relative;height:11px;overflow:hidden;background:#000;border:2px solid #000;border-radius:6px;box-shadow:0 0 0 2px #555}
+.bg-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--y),var(--yl));transition:width .4s}
+.battle-goal.done{box-shadow:0 0 0 3px #3ddc84,3px 3px 0 3px #000,0 0 18px 3px rgba(61,220,132,.55)}
+.battle-goal.done .bg-bar i{background:linear-gradient(90deg,#1e9e5a,#3ddc84)}
+.battle-goal.done .bg-value b{color:#3ddc84}
+.reglages-button{padding:6px 14px;font:400 18px var(--f);letter-spacing:1px;color:#000;background:var(--y);border:3px solid #000;border-radius:10px;box-shadow:0 4px 0 #000;cursor:pointer}
+.reglages-button:hover,.attack-button:hover{transform:translateY(-2px)}
+.attack-button:hover{box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 7px 0 #000}
+.attack-button:active{box-shadow:inset 0 2px 0 rgba(255,255,255,.55)}
+.reglages-button:active,.attack-button:active,.undo-button:active{transform:translateY(3px);box-shadow:none}
+
+/* MISE EN PAGE */
+.main{flex:1;min-height:0;padding:24px 22px 16px;display:grid;grid-template-rows:var(--boss-h,260px) minmax(0,1fr);gap:24px}
+.boss-area{display:flex;gap:24px;height:var(--boss-h,260px)}
+.content{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(240px,24cqw,380px);gap:24px}
+.attack-rules,.boss-rules,.history,.player-card{background:radial-gradient(rgba(255,196,0,.11) 1.3px,transparent 1.8px) 0 0/11px 11px,linear-gradient(160deg,#201213,#0f0a0a);border:3px solid #000;border-radius:14px;box-shadow:0 0 0 3px var(--y),6px 6px 0 3px #000}
+
+/* REGLES : condition à gauche, résultat à droite */
+.attack-rules,.boss-rules{flex:1 1 0;min-width:0;padding:12px 18px;display:flex;flex-direction:column;justify-content:center}
+.rules-title{align-self:flex-start;margin:0 0 4px -8px;padding:2px 16px;font:400 clamp(20px,1.9cqw,28px)/1.2 var(--f);letter-spacing:1px;border:3px solid #000;border-radius:8px;transform:rotate(-2deg);box-shadow:3px 3px 0 #000}
+.attack-rules .rules-title{background:var(--r);color:#fff}
+.boss-rules .rules-title{background:var(--y);color:#000}
+.rule{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:3px 0;white-space:nowrap;border-bottom:2px dashed rgba(255,196,0,.28);font-size:clamp(14px,1.2cqw,18px)}
+.rule:last-child{border-bottom:0}
+.cond{text-align:left}
+.res{text-align:right;padding:1px 8px;color:#000;background:var(--y);border:2px solid #000;border-radius:999px;box-shadow:2px 2px 0 #000}
+.res.hot{background:var(--r);color:#fff}
+
+/* BOSS */
+.boss-panel{position:relative;flex:0 0 41%;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:#000;border:4px solid #000;border-radius:16px;box-shadow:0 0 0 4px var(--y),0 0 0 8px #000,10px 10px 0 8px var(--r)}
+.boss-image-container{position:relative;flex:1 1 0;min-height:0;width:100%;overflow:hidden;background:#000}
+.boss-image-container img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}
+.boss-image-container::after{content:"";position:absolute;z-index:3;inset:0;pointer-events:none;opacity:0}
+.boss-name{position:absolute;z-index:5;top:12px;left:-6px;max-width:85%;padding:2px 28px 2px 20px;font:400 clamp(24px,2.6cqw,38px)/1.15 var(--f);letter-spacing:2px;white-space:nowrap;color:#fff;background:var(--r);border:3px solid #000;border-left:0;box-shadow:4px 4px 0 var(--y);text-shadow:2px 2px 0 #000;transform:skewX(-10deg)}
+.boss-info{position:relative;z-index:5;flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:9px 18px 11px;background:#000;border-top:3px solid var(--y)}
+.boss-hp-text{display:inline-block;flex:0 0 auto;white-space:nowrap;margin:0;padding:0 12px;font:400 22px/1.3 var(--f);letter-spacing:1px;color:var(--y);background:#000;border:2px solid var(--y);border-radius:8px}
+.boss-hp-bar{position:relative;flex:1 1 0;min-width:0;height:26px;overflow:hidden;background:#2a0508;border:3px solid #000;border-radius:6px;box-shadow:0 0 0 3px var(--y);transform:skewX(-14deg)}
+.boss-hp-fill{position:relative;z-index:1;height:100%;background:linear-gradient(#ff5a5f 0 35%,#e30613 35% 70%,#a50009 70%);transition:width .3s}
+.boss-hp-bar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 3px),#000 calc(10% - 3px) 10%);pointer-events:none;z-index:2}
+
+/* JOUEURS */
+.players{min-width:0;min-height:0;display:grid;gap:14px;align-content:start}
+.player-card{container-type:inline-size;position:relative;min-width:0;height:100%;padding:8px;display:flex;gap:10px}
+.player-card.is-boss{box-shadow:0 0 0 3px var(--r),6px 6px 0 3px #000,0 0 24px 6px rgba(227,6,19,.55)}
+/* ÉQUIPES */
+.players.teams-mode{display:flex;flex-direction:column;gap:22px;align-content:normal}
+.team-block{position:relative;flex:0 0 auto;min-width:0;padding:24px 10px 10px;border:3px solid var(--tc,#888);border-radius:16px;background:var(--tc-bg,rgba(255,255,255,.04));box-shadow:0 0 0 3px #000,0 0 18px 2px var(--tc-glow,transparent)}
+.team-tag{position:absolute;top:-17px;left:18px;z-index:7;max-width:calc(100% - 36px);padding:0 16px;display:flex;align-items:baseline;gap:12px;font:400 28px/1.4 var(--f);letter-spacing:1px;white-space:nowrap;color:var(--tc-txt,#000);background:var(--tc,#888);border:3px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;transform:rotate(-1.5deg)}
+.team-tag .team-name{overflow:hidden;text-overflow:ellipsis}
+.team-tag .team-score{font-size:22px;opacity:.85}
+.team-grid{display:grid;gap:12px;align-content:start}
+/* Cartes joueurs plus compactes en mode équipes : le Boss et les règles gardent leur taille */
+.teams-mode .player-card{padding:6px;gap:8px}
+.teams-mode .player-photo{width:min(clamp(48px,28cqw,160px),calc(var(--card-h,128px) - 26px))}
+.teams-mode .player-right{gap:4px}
+.teams-mode .player-name{font-size:27px;line-height:29px}
+.teams-mode .player-sales{font-size:21px;line-height:23px}
+.teams-mode .es-gauge{height:10px}
+.teams-mode .player-buttons{grid-template-rows:minmax(34px,1fr) 30px;gap:8px 6px}
+.teams-mode .attack-button{border-width:2px;box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 4px 0 #000}
+.teams-mode .undo-button{font-size:16px;box-shadow:0 2px 0 #000}
+/* l'étiquette BOSS passe à droite pour ne pas être cachée par l'étiquette d'équipe */
+.teams-mode .player-card.is-boss::before{top:calc(50% - min(clamp(48px,28cqw,160px),calc(var(--card-h,128px) - 26px)) / 2 + 4px);left:1px}
+.player-card.is-boss::before{content:"BOSS";position:absolute;top:calc(50% - clamp(48px,28cqw,160px) / 2 + 4px);left:3px;z-index:8;padding:0 10px;font:400 16px/1.4 var(--f);letter-spacing:1px;color:var(--y);background:var(--r);border:2px solid #000;border-radius:6px;box-shadow:2px 2px 0 #000;transform:rotate(-6deg);transform-origin:left top}
+.player-photo{height:auto;width:clamp(48px,28cqw,160px);aspect-ratio:1;flex-shrink:0;align-self:center;object-fit:cover;background:#222;border:3px solid #000;border-radius:10px;box-shadow:0 0 0 3px var(--y)}
+.player-right{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:6px}
+.player-info{flex:0 0 auto;min-width:0}
+.player-name{font:400 30px/32px var(--f);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-text-stroke:1px #000;paint-order:stroke fill;text-shadow:2px 2px 0 #000}
+.player-sales{display:flex;align-items:center;gap:6px;font:400 23px/26px var(--f);letter-spacing:1px;white-space:nowrap}
+.player-es-current{color:var(--y)}
+.es-gauge{position:relative;flex:1;min-width:24px;height:12px;overflow:hidden;background:#000;border:2px solid #000;border-radius:6px;box-shadow:0 0 0 2px #555}
+.es-gauge i{display:block;height:100%;background:linear-gradient(90deg,var(--y),var(--yl));transition:width .3s}
+.player-buttons{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(44px,1fr) 32px;gap:10px 6px}
+.attack-button{display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-width:0;padding:0 2px;overflow:hidden;white-space:nowrap;font:400 clamp(11px,5cqw,20px) var(--f);letter-spacing:0;border:3px solid #000;border-radius:10px;background-image:linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,0) 50%,rgba(0,0,0,.2));box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 5px 0 #000;cursor:pointer;transition:transform .08s,box-shadow .08s}
+.attack-button.simple{background:var(--yl);color:#000}
+.attack-button.double{background:#ff9800;color:#000}
+.attack-button.triple{background:var(--r);color:#fff;text-shadow:2px 2px 0 #000}
+.attack-button:disabled,.undo-button:disabled{opacity:.5;cursor:default;transform:none}
+.undo-button{grid-column:1/4;justify-self:center;height:100%;padding:0 20px;font:400 18px var(--f);letter-spacing:1px;color:#ddd;background:#1b1b1b;border:2px solid #666;border-radius:8px;box-shadow:0 3px 0 #000;cursor:pointer}
+@container (max-width:250px){.player-photo{display:none}.player-name{font-size:24px}.attack-button{font-size:16px}}
+.skull-button{position:absolute;top:-15px;right:-10px;z-index:6;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;background:var(--y);border:3px solid #000;border-radius:50%;cursor:pointer;animation:skull 1.1s ease-in-out infinite}
+.skull-button.bonus{right:36px;background:#c77dff}
+.skull-button.bonus.alone{right:-10px}
+.boss-events{position:absolute;z-index:5;top:10px;right:10px;display:flex;justify-content:flex-end;gap:8px;pointer-events:none}
+.boss-events:empty{display:none}
+.event-chip{display:flex;align-items:center;gap:6px;padding:2px 12px 2px 8px;font:400 26px/1.25 var(--f);letter-spacing:1px;color:#000;border:3px solid #000;border-radius:10px;box-shadow:3px 3px 0 #000;transform:rotate(3deg)}
+.event-chip small{font-size:15px;letter-spacing:0}
+.event-chip.double{background:var(--y)}
+.event-chip.oneshot{background:#c77dff}
+.event-chip.oneshot .num{padding:0 6px;color:#fff;background:var(--r);border:2px solid #000;border-radius:6px;font-size:20px;line-height:1.2}
+@keyframes eventPop{0%{transform:scale(.4) rotate(12deg);opacity:0}70%{transform:scale(1.15) rotate(3deg)}100%{transform:scale(1) rotate(3deg);opacity:1}}
+.event-chip{animation:eventPop .45s ease-out}
+@media(prefers-reduced-motion:reduce){.event-chip{animation:none}}
+.skull-button.bonus::after{content:"4";position:absolute;right:-7px;bottom:-7px;min-width:18px;height:18px;padding:0 3px;box-sizing:border-box;font:400 12px/12px var(--f);color:#fff;text-align:center;background:var(--r);border:2px solid #000;border-radius:9px}
+.skull-button:hover{transform:scale(1.12)}
+.skull-button:disabled{opacity:.5;animation:none;cursor:default;transform:none}
+@keyframes skull{0%,100%{box-shadow:0 3px 0 #000,0 0 0 0 rgba(227,6,19,.8)}50%{box-shadow:0 3px 0 #000,0 0 0 9px rgba(227,6,19,0)}}
+
+/* HISTORIQUE */
+.history{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.history-title{flex:0 0 auto;align-self:flex-start;margin:10px 0 6px 10px;padding:2px 16px;font:400 26px/1.2 var(--f);letter-spacing:1px;color:#000;background:var(--y);border:3px solid #000;border-radius:8px;box-shadow:3px 3px 0 #000;transform:rotate(-2deg)}
+.history-list{flex:1;min-height:0;overflow-y:auto;padding:6px 10px 10px}
+.history-list::-webkit-scrollbar{width:8px}
+.history-list::-webkit-scrollbar-thumb{background:var(--y);border-radius:4px}
+.history-item{margin-bottom:7px;padding:7px 9px;font-size:17px;line-height:22px;background:rgba(0,0,0,.6);border-left:6px solid var(--y);border-radius:4px 8px 8px 4px}
+.history-item:first-child{border-left-color:var(--r);background:rgba(227,6,19,.22)}
+.history-time{margin-right:6px;font:400 17px var(--f);letter-spacing:1px;color:var(--y)}
+
+/* CADRE AUTO-ADAPTATIF : #stage est réduit par JS pour tout afficher sans défilement */
+#stage{position:absolute;left:0;top:0;width:100vw;height:100vh;display:flex;flex-direction:column;transform-origin:0 0;container-type:inline-size}
+@container (max-width:1250px){.boss-panel{flex-basis:41%}.attack-rules,.boss-rules{padding:12px}}
+@media(prefers-reduced-motion:reduce){.skull-button{animation:none}}
+
+/* PV BAS : halo rouge qui pulse doucement + texte PV qui rougit */
+.boss-panel.low-hp::after{content:"";position:absolute;inset:0;z-index:4;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 26px 6px rgba(227,6,19,.6);animation:lowHpPulse 1.8s ease-in-out infinite}
+.boss-panel.low-hp .boss-hp-text{animation:lowHpText 1.8s ease-in-out infinite}
+@keyframes lowHpPulse{0%,100%{opacity:.1}50%{opacity:.85}}
+@keyframes lowHpText{0%,100%{color:var(--y)}50%{color:#ff5a5f}}
+@media(prefers-reduced-motion:reduce){.boss-panel.low-hp::after{animation:none;opacity:.5}.boss-panel.low-hp .boss-hp-text{animation:none}}
+
+/* =========================
+   ANIMATIONS BOSS
+========================= */
+
+.boss-image-container.attack-simple::after {
+    animation: bossSimple 0.45s ease;
+}
+
+.boss-image-container.attack-double::after {
+    animation: bossDouble 0.55s ease;
+}
+
+.boss-image-container.attack-triple::after {
+    animation: bossTriple 0.7s ease;
+}
+
+.boss-image-container.heal::after {
+    animation: bossHeal 0.9s ease;
+}
+
+@keyframes bossSimple {
+    0% {
+        opacity: 0;
+        background: rgba(255, 0, 0, 0);
+    }
+
+    30% {
+        opacity: 0.65;
+        background: rgba(255, 0, 0, 0.45);
+    }
+
+    100% {
+        opacity: 0;
+        background: rgba(255, 0, 0, 0);
+    }
+}
+
+@keyframes bossDouble {
+    0% {
+        opacity: 0;
+        background: rgba(255, 120, 0, 0);
+    }
+
+    20% {
+        opacity: 0.8;
+        background: rgba(255, 120, 0, 0.55);
+    }
+
+    45% {
+        opacity: 0;
+    }
+
+    65% {
+        opacity: 0.55;
+        background: rgba(255, 60, 0, 0.4);
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes bossTriple {
+    0% {
+        opacity: 0;
+        background: rgba(255, 0, 0, 0);
+    }
+
+    15% {
+        opacity: 0.9;
+        background: rgba(255, 0, 0, 0.7);
+    }
+
+    30% {
+        opacity: 0;
+    }
+
+    45% {
+        opacity: 0.8;
+        background: rgba(255, 120, 0, 0.6);
+    }
+
+    60% {
+        opacity: 0;
+    }
+
+    75% {
+        opacity: 0.7;
+        background: rgba(255, 0, 0, 0.5);
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes bossHeal {
+    0% {
+        opacity: 0;
+        background: rgba(0, 255, 80, 0);
+    }
+
+    30% {
+        opacity: 0.55;
+        background: rgba(0, 255, 80, 0.35);
+    }
+
+    60% {
+        opacity: 0.25;
+        background: rgba(0, 255, 80, 0.2);
+    }
+
+    100% {
+        opacity: 0;
+        background: rgba(0, 255, 80, 0);
+    }
+}
+
+/* =========================
+   COUPS VISUELS SUR LE BOSS
+========================= */
+
+.boss-image-container.attack-simple img {
+    animation: bossImgSimple 0.45s ease;
+}
+
+.boss-image-container.attack-double img {
+    animation: bossImgDouble 0.55s ease;
+}
+
+.boss-image-container.attack-triple img {
+    animation: bossImgTriple 0.7s ease;
+}
+
+.boss-image-container.oneshot img {
+    animation: bossImgOneShot 1.1s ease;
+}
+
+.boss-image-container.oneshot::after {
+    background: radial-gradient(
+        circle,
+        #fff 0%,
+        #ffd000 35%,
+        #ff3d00 70%,
+        rgba(227, 6, 19, 0) 100%
+    );
+    animation: bossOneShotFlash 1.1s ease;
+}
+
+@keyframes bossImgSimple {
+    0%   { transform: translateX(0) scale(1.03); filter: none; }
+    20%  { transform: translateX(-5px) scale(1.04); filter: brightness(1.6); }
+    45%  { transform: translateX(4px) scale(1.03); filter: brightness(1.2); }
+    70%  { transform: translateX(-2px) scale(1.03); filter: none; }
+    100% { transform: translateX(0) scale(1); filter: none; }
+}
+
+@keyframes bossImgDouble {
+    0%   { transform: translate(0, 0) scale(1.05); filter: none; }
+    15%  { transform: translate(-10px, 4px) rotate(-1.5deg) scale(1.06); filter: brightness(1.9) saturate(1.5); }
+    30%  { transform: translate(9px, -4px) rotate(1.5deg) scale(1.06); filter: brightness(1.3); }
+    50%  { transform: translate(-7px, 3px) rotate(-1deg) scale(1.05); filter: brightness(1.7) saturate(1.4); }
+    70%  { transform: translate(5px, -2px) rotate(0.5deg) scale(1.05); filter: brightness(1.1); }
+    100% { transform: translate(0, 0) scale(1); filter: none; }
+}
+
+@keyframes bossImgTriple {
+    0%   { transform: translate(0, 0) scale(1.09); filter: none; }
+    10%  { transform: translate(-18px, 8px) rotate(-3deg) scale(1.12); filter: brightness(2.4) saturate(1.8) contrast(1.2); }
+    22%  { transform: translate(16px, -8px) rotate(3deg) scale(1.12); filter: brightness(1.4); }
+    34%  { transform: translate(-14px, 6px) rotate(-2.5deg) scale(1.11); filter: brightness(2.2) saturate(1.8); }
+    48%  { transform: translate(12px, -6px) rotate(2deg) scale(1.1); filter: brightness(1.3); }
+    62%  { transform: translate(-8px, 4px) rotate(-1.5deg) scale(1.1); filter: brightness(1.8) saturate(1.5); }
+    80%  { transform: translate(4px, -2px) rotate(0.5deg) scale(1.09); filter: brightness(1.1); }
+    100% { transform: translate(0, 0) scale(1); filter: none; }
+}
+
+/* One shot : tremblement violent, blanc éclatant, puis le nouveau Boss réapparaît */
+@keyframes bossImgOneShot {
+    0%   { transform: translate(0, 0) scale(1.05); filter: none; }
+    8%   { transform: translate(-14px, 6px) rotate(-3deg) scale(1.1); filter: brightness(1.6); }
+    16%  { transform: translate(14px, -6px) rotate(3deg) scale(1.12); filter: brightness(1.4); }
+    24%  { transform: translate(-18px, 8px) rotate(-4deg) scale(1.15); filter: brightness(2.2) saturate(2); }
+    32%  { transform: translate(18px, -8px) rotate(4deg) scale(1.18); filter: brightness(2); }
+    42%  { transform: translate(0, 0) rotate(0deg) scale(1.3); filter: brightness(4) saturate(0.4); }
+    50%  { transform: translate(0, 0) scale(1.35); filter: brightness(6) saturate(0); }
+    65%  { transform: translate(0, 0) scale(1.15); filter: brightness(3) saturate(0.6); }
+    100% { transform: translate(0, 0) scale(1); filter: none; }
+}
+
+@keyframes bossOneShotFlash {
+    0%   { opacity: 0; }
+    35%  { opacity: 0.25; }
+    50%  { opacity: 1; }
+    75%  { opacity: 0.35; }
+    100% { opacity: 0; }
+}
+
+/* Éclats (créés en JS) */
+
+.boss-fx {
+    position: absolute;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.boss-slash {
+    left: -10%;
+    top: 50%;
+    width: 120%;
+    height: var(--h, 6px);
+    margin-top: calc(var(--h, 6px) / -2);
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0),
+        #fff 20%,
+        #fff 80%,
+        rgba(255, 255, 255, 0)
+    );
+    box-shadow:
+        0 0 12px 3px rgba(255, 60, 0, 0.9),
+        0 0 26px 8px rgba(255, 0, 0, 0.5);
+    opacity: 0;
+    animation: bossSlash 0.35s ease-out forwards;
+    animation-delay: var(--d, 0s);
+}
+
+@keyframes bossSlash {
+    0%   { opacity: 0; transform: translateY(var(--y, 0px)) rotate(var(--r, -30deg)) scaleX(0); }
+    30%  { opacity: 1; transform: translateY(var(--y, 0px)) rotate(var(--r, -30deg)) scaleX(1); }
+    100% { opacity: 0; transform: translateY(var(--y, 0px)) rotate(var(--r, -30deg)) scaleX(1.05); }
+}
+
+.boss-explosion {
+    left: 50%;
+    top: 50%;
+    width: 75%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        #fff 0%,
+        #ffe45c 22%,
+        #ff7a00 50%,
+        #e30613 72%,
+        rgba(227, 6, 19, 0) 100%
+    );
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    animation: bossExplosion 0.8s ease-out 0.35s forwards;
+}
+
+@keyframes bossExplosion {
+    0%   { opacity: 1; transform: translate(-50%, -50%) scale(0); }
+    45%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); }
+}
+
+.boss-shockwave {
+    left: 50%;
+    top: 50%;
+    width: 50%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 6px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 18px 4px rgba(255, 140, 0, 0.8);
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    animation: bossShockwave 0.75s ease-out 0.4s forwards;
+}
+
+@keyframes bossShockwave {
+    0%   { opacity: 1; transform: translate(-50%, -50%) scale(0.1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(2.6); }
+}
+
+.boss-spark {
+    left: 50%;
+    top: 50%;
+    width: 26px;
+    height: 5px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #fff, #ffd000, #ff3d00);
+    box-shadow: 0 0 8px 2px rgba(255, 120, 0, 0.9);
+    transform: translate(-50%, -50%) rotate(var(--a, 0deg)) translateX(0);
+    opacity: 0;
+    animation: bossSpark 0.75s ease-out 0.4s forwards;
+}
+
+@keyframes bossSpark {
+    0%   { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a, 0deg)) translateX(0); }
+    100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a, 0deg)) translateX(var(--dist, 120px)); }
+}
+
+/* =========================
+   SOIN DU BOSS
+========================= */
+
+.boss-image-container.heal img {
+    animation: bossImgHeal 0.9s ease;
+}
+
+@keyframes bossImgHeal {
+    0%   { transform: scale(1); filter: none; }
+    25%  { transform: scale(1.05); filter: brightness(1.4) saturate(1.5); }
+    50%  { transform: scale(1.03); filter: brightness(1.2) saturate(1.3); }
+    75%  { transform: scale(1.04); filter: brightness(1.3) saturate(1.4); }
+    100% { transform: scale(1); filter: none; }
+}
+
+.boss-heal-ring {
+    left: 50%;
+    top: 50%;
+    width: 50%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 5px solid rgba(140, 255, 175, 0.95);
+    box-shadow:
+        0 0 18px 4px rgba(0, 255, 100, 0.7),
+        inset 0 0 18px 2px rgba(0, 255, 100, 0.5);
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0;
+    animation: bossHealRing 0.9s ease-out var(--d, 0s) forwards;
+}
+
+@keyframes bossHealRing {
+    0%   { opacity: 1; transform: translate(-50%, -50%) scale(0.2); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
+}
+
+.boss-plus {
+    left: var(--x, 50%);
+    top: 65%;
+    font-size: var(--s, 26px);
+    font-weight: 900;
+    line-height: 1;
+    color: #8dffa8;
+    text-shadow:
+        0 0 6px #00ff64,
+        0 0 14px #00c853,
+        2px 2px 0 #000;
+    opacity: 0;
+    animation: bossPlus 1s ease-out forwards;
+    animation-delay: var(--d, 0s);
+}
+
+@keyframes bossPlus {
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+    20%  { opacity: 1; transform: translate(-50%, -18px) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, calc(var(--rise, 120px) * -1)) scale(0.9); }
+}
+
+/* =========================
+   BOUCLIER VIOLET DU BOSS
+========================= */
+
+.boss-shield-bar {
+    display: none;
+    width: 100%;
+    height: 10px;
+    margin-top: 5px;
+    background: #1b0a2b;
+    border: 2px solid #000;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 0 0 2px #b070ff;
+}
+
+.boss-shield-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(
+        90deg,
+        #6a1fd0,
+        #a94bff,
+        #d9a6ff
+    );
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.25);
+    transition: width 0.3s ease;
+}
+
+/* Halo permanent tant que le Boss a du bouclier */
+
+.boss-shield-aura {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0;
+    border: 3px solid rgba(190, 120, 255, 0.85);
+    box-shadow: inset 0 0 26px 6px rgba(150, 70, 255, 0.6);
+    transition: opacity 0.3s ease;
+}
+
+.boss-image-container.shielded .boss-shield-aura {
+    opacity: 1;
+    animation: bossShieldPulse 2s ease-in-out infinite;
+}
+
+@keyframes bossShieldPulse {
+    0%, 100% { box-shadow: inset 0 0 22px 5px rgba(150, 70, 255, 0.55); }
+    50%      { box-shadow: inset 0 0 40px 12px rgba(190, 120, 255, 0.9); }
+}
+
+/* Animation quand le bouclier se forme */
+
+.boss-image-container.shield img {
+    animation: bossImgShield 1s ease;
+}
+
+.boss-image-container.shield::after {
+    animation: bossShield 1s ease;
+}
+
+@keyframes bossImgShield {
+    0%   { transform: scale(1); filter: none; }
+    30%  { transform: scale(1.05); filter: brightness(1.35) saturate(1.3); }
+    60%  { transform: scale(1.02); filter: brightness(1.15); }
+    100% { transform: scale(1); filter: none; }
+}
+
+@keyframes bossShield {
+    0% {
+        opacity: 0;
+        background: rgba(170, 80, 255, 0);
+    }
+
+    30% {
+        opacity: 0.6;
+        background: rgba(170, 80, 255, 0.4);
+    }
+
+    100% {
+        opacity: 0;
+        background: rgba(170, 80, 255, 0);
+    }
+}
+
+.boss-shield-dome {
+    left: 50%;
+    top: 50%;
+    width: 80%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 5px solid rgba(205, 150, 255, 0.95);
+    background: radial-gradient(
+        circle,
+        rgba(190, 120, 255, 0.05) 40%,
+        rgba(150, 70, 255, 0.45) 100%
+    );
+    box-shadow:
+        0 0 22px 6px rgba(160, 80, 255, 0.8),
+        inset 0 0 28px 6px rgba(190, 120, 255, 0.6);
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+    animation: bossShieldDome 1s ease-out forwards;
+}
+
+@keyframes bossShieldDome {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+    30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    60%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.boss-shard {
+    left: var(--x, 50%);
+    top: 70%;
+    width: var(--s, 14px);
+    height: var(--s, 14px);
+    background: linear-gradient(135deg, #ecd2ff, #a94bff);
+    border: 2px solid #fff;
+    box-shadow: 0 0 10px 2px rgba(170, 80, 255, 0.9);
+    opacity: 0;
+    transform: translate(-50%, 0) rotate(45deg);
+    animation: bossShard 1s ease-out forwards;
+    animation-delay: var(--d, 0s);
+}
+
+@keyframes bossShard {
+    0%   { opacity: 0; transform: translate(-50%, 0) rotate(45deg) scale(0.5); }
+    20%  { opacity: 1; transform: translate(-50%, -18px) rotate(90deg) scale(1.1); }
+    100% { opacity: 0; transform: translate(-50%, calc(var(--rise, 120px) * -1)) rotate(225deg) scale(0.8); }
+}
+
+
+
+/* =========================
+   COURONNE : métal noir/or, pointes acérées, gemmes rouges
+========================= */
+:root{--crown:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%22-6%20-7%2076%2062%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22cg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe45c%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%23ffc400%22%2F%3E%3Cstop%20offset%3D%22.56%22%20stop-color%3D%22%23ffa800%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ff9800%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22cd%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ff3b3b%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%23e30613%22%2F%3E%3Cstop%20offset%3D%22.56%22%20stop-color%3D%22%23c40410%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23a80009%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22cr%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ff5a5a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e30613%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M3%2040L1%2012L15%2026L20%204L27%2024L32%200L37%2024L44%204L49%2026L63%2012L61%2040Z%22%20fill%3D%22url%28%23cg%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M6%2035L4.2%2017M22%2011L25%2021M34%208L36%2020M46%2012L48%2021%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.85%22%2F%3E%3Cpath%20d%3D%22M3%2040H61L59%2048H5Z%22%20fill%3D%22url%28%23cd%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2244%22%20r%3D%221.9%22%20fill%3D%22%23ffe45c%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2224%22%20cy%3D%2244%22%20r%3D%221.9%22%20fill%3D%22%23ffe45c%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2240%22%20cy%3D%2244%22%20r%3D%221.9%22%20fill%3D%22%23ffe45c%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2244%22%20r%3D%221.9%22%20fill%3D%22%23ffe45c%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22%2F%3E%3Cpath%20d%3D%22M32%2026L38.5%2033.5L32%2041L25.5%2033.5Z%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M31%2029.5L28.6%2033L31%2033.6Z%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%221%22%20cy%3D%2212%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%22-0.10000000000000009%22%20cy%3D%2210.8%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%224%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%2218.9%22%20cy%3D%222.8%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%220%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%2230.9%22%20cy%3D%22-1.2%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%224%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%2242.9%22%20cy%3D%222.8%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3Ccircle%20cx%3D%2263%22%20cy%3D%2212%22%20r%3D%223.6%22%20fill%3D%22url%28%23cr%29%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%2F%3E%3Ccircle%20cx%3D%2261.9%22%20cy%3D%2210.8%22%20r%3D%221%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%2F%3E%3C%2Fsvg%3E")}
+.crown{display:inline-block;width:1.3em;height:1em;vertical-align:-.16em;background:var(--crown) center/contain no-repeat;filter:drop-shadow(1px 2px 0 #000)}
+.boss-name span::before{content:"";display:inline-block;width:1.3em;height:1em;margin-right:.3em;vertical-align:-.12em;background:var(--crown) center/contain no-repeat;filter:drop-shadow(2px 2px 0 #000)}
+
+/* =========================
+   BARRE DE PV : traînée de dégâts
+========================= */
+.boss-hp-ghost{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(#fff 0 40%,#ffb000 40%);transition:width .8s ease-out .45s}
+
+/* =========================
+   DÉGÂTS : tout est proportionnel à --pw (0.17 → 1)
+========================= */
+.boss-panel.panel-hit{animation:panelHit calc(.3s + var(--pw,.3)*.35s) linear}
+@keyframes panelHit{
+    0%,100%{transform:translate(0,0) rotate(0)}
+    12%{transform:translate(calc(var(--pw,.3)*-16px),calc(var(--pw,.3)*6px)) rotate(calc(var(--pw,.3)*-1.2deg))}
+    28%{transform:translate(calc(var(--pw,.3)*14px),calc(var(--pw,.3)*-6px)) rotate(calc(var(--pw,.3)*1deg))}
+    44%{transform:translate(calc(var(--pw,.3)*-10px),calc(var(--pw,.3)*4px)) rotate(calc(var(--pw,.3)*-.6deg))}
+    60%{transform:translate(calc(var(--pw,.3)*8px),calc(var(--pw,.3)*-3px))}
+    80%{transform:translate(calc(var(--pw,.3)*-4px),calc(var(--pw,.3)*2px))}
+}
+.boss-hp-bar.bar-hit{animation:barHit calc(.35s + var(--pw,.3)*.3s) linear}
+@keyframes barHit{
+    0%,100%{transform:skewX(-14deg) translateX(0);box-shadow:0 0 0 3px var(--y)}
+    20%{transform:skewX(-14deg) translateX(calc(var(--pw,.3)*-9px));box-shadow:0 0 0 3px #fff,0 0 calc(10px + var(--pw,.3)*24px) rgba(255,40,0,.95)}
+    40%{transform:skewX(-14deg) translateX(calc(var(--pw,.3)*8px))}
+    60%{transform:skewX(-14deg) translateX(calc(var(--pw,.3)*-5px))}
+    80%{transform:skewX(-14deg) translateX(calc(var(--pw,.3)*3px))}
+}
+.boss-vignette{inset:0;z-index:6;box-shadow:inset 0 0 calc(40px + var(--pw,.3)*90px) calc(var(--pw,.3)*24px) rgba(255,0,0,.95);opacity:0;animation:bossVig .7s ease-out forwards}
+@keyframes bossVig{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.boss-burst{left:50%;top:46%;z-index:5;width:calc(90px + var(--pw,.3)*200px);aspect-ratio:1/1;background:radial-gradient(circle,#fff 0,var(--c1,#ffe45c) 35%,var(--c2,#ff5a00) 70%,#e30613 100%);opacity:0;transform:translate(-50%,-50%) scale(0);animation:hitBurst .55s ease-out forwards}
+@keyframes hitBurst{0%{opacity:1;transform:translate(-50%,-50%) scale(.1) rotate(0)}40%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(12deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.4) rotate(22deg)}}
+.hit-ring{left:50%;top:46%;z-index:5;width:40%;aspect-ratio:1/1;border-radius:50%;border:calc(3px + var(--pw,.3)*6px) solid rgba(255,255,255,.9);box-shadow:0 0 18px 4px rgba(255,90,0,.8);transform:translate(-50%,-50%) scale(.1);opacity:0;animation:bossShockwave .6s ease-out forwards}
+.hit-spark{left:50%;top:46%;z-index:6;width:calc(14px + var(--pw,.3)*18px);height:calc(3px + var(--pw,.3)*3px);border-radius:3px;background:linear-gradient(90deg,#fff,#ffd000,#ff3d00);box-shadow:0 0 8px 2px rgba(255,120,0,.9);opacity:0;transform:translate(-50%,-50%) rotate(var(--a,0deg)) translateX(0);animation:hitSpark var(--t,.6s) ease-out forwards}
+@keyframes hitSpark{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--a,0deg)) translateX(0)}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a,0deg)) translateX(var(--dist,120px))}}
+.boss-num{left:50%;top:44%;z-index:8;font:400 var(--fs,48px)/1 var(--f);letter-spacing:2px;white-space:nowrap;color:var(--c,#fff);-webkit-text-stroke:calc(2px + var(--pw,.3)*3px) #000;paint-order:stroke fill;text-shadow:0 0 calc(8px + var(--pw,.3)*24px) var(--g,#ff3d00),3px 4px 0 #000;opacity:0;animation:bossNum var(--dur,1.2s) cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes bossNum{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(2.8) rotate(var(--rot,-6deg))}
+    14%{opacity:1;transform:translate(-50%,-50%) scale(.9) rotate(var(--rot,-6deg))}
+    24%{transform:translate(-50%,-50%) scale(1.25) rotate(var(--rot,-6deg))}
+    36%{transform:translate(-50%,-50%) scale(1) rotate(var(--rot,-6deg))}
+    70%{opacity:1;transform:translate(-50%,calc(-50% - 22px)) scale(1) rotate(var(--rot,-6deg))}
+    100%{opacity:0;transform:translate(-50%,calc(-50% - 60px)) scale(.85) rotate(var(--rot,-6deg))}
+}
+.boss-word{left:var(--x,72%);top:var(--y,24%);z-index:8;padding:0 10px;font:400 calc(20px + var(--pw,.3)*26px)/1.15 var(--f);letter-spacing:1px;white-space:nowrap;color:#000;background:var(--yl);border:3px solid #000;box-shadow:3px 3px 0 #000;opacity:0;transform:translate(-50%,-50%) rotate(var(--rot,8deg));animation:bossWord .85s ease-out .05s forwards}
+@keyframes bossWord{0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--rot,8deg)) scale(0)}20%{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot,8deg)) scale(1.35)}35%{transform:translate(-50%,-50%) rotate(var(--rot,8deg)) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,calc(-50% - 14px)) rotate(var(--rot,8deg)) scale(1)}}
+
+/* =========================
+   SOIN : halo vert, faisceaux, orbes, chiffre "+N"
+========================= */
+.boss-panel.panel-heal{animation:panelHeal calc(.8s + var(--pw,.3)*.8s) ease-out}
+@keyframes panelHeal{
+    0%,100%{box-shadow:0 0 0 4px var(--y),0 0 0 8px #000,10px 10px 0 8px var(--r),0 0 0 0 rgba(0,255,110,0)}
+    35%{box-shadow:0 0 0 4px #8dffa8,0 0 0 8px #000,10px 10px 0 8px var(--r),0 0 calc(20px + var(--pw,.3)*60px) calc(var(--pw,.3)*16px) rgba(0,255,110,.85)}
+}
+.boss-hp-bar.bar-heal{animation:barHeal 1.1s ease-out}
+@keyframes barHeal{0%,100%{box-shadow:0 0 0 3px var(--y)}30%{box-shadow:0 0 0 3px #8dffa8,0 0 calc(12px + var(--pw,.3)*34px) rgba(0,255,110,.95)}}
+.boss-hp-bar.bar-heal .boss-hp-fill{animation:fillHeal 1.1s ease-out}
+@keyframes fillHeal{0%,100%{filter:none}30%{filter:hue-rotate(115deg) brightness(1.7) saturate(1.5)}}
+.boss-beam{left:var(--x,50%);bottom:0;z-index:3;width:var(--bw,14px);height:100%;margin-left:calc(var(--bw,14px)/-2);background:linear-gradient(to top,rgba(0,255,110,.85),rgba(150,255,190,.35) 55%,rgba(0,255,110,0));transform-origin:50% 100%;transform:scaleY(0);opacity:0;mix-blend-mode:screen;animation:bossBeam 1s ease-out var(--d,0s) forwards}
+@keyframes bossBeam{0%{opacity:0;transform:scaleY(0)}25%{opacity:1;transform:scaleY(1)}100%{opacity:0;transform:scaleY(1.05)}}
+.boss-orb{left:var(--x,50%);top:85%;z-index:5;width:var(--s,8px);height:var(--s,8px);border-radius:50%;background:radial-gradient(circle,#fff,#7dffa6 50%,rgba(0,255,100,0));box-shadow:0 0 10px 3px rgba(0,255,110,.8);opacity:0;animation:bossOrb 1.2s ease-out var(--d,0s) forwards}
+@keyframes bossOrb{0%{opacity:0;transform:translate(-50%,0) scale(.4)}20%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx,0px)),calc(var(--rise,140px)*-1)) scale(1)}}
+@keyframes bossNumHeal{
+    0%{opacity:0;transform:translate(-50%,-30%) scale(.4)}
+    22%{opacity:1;transform:translate(-50%,-55%) scale(1.3)}
+    38%{transform:translate(-50%,-58%) scale(1)}
+    75%{opacity:1;transform:translate(-50%,-90%) scale(1.02)}
+    100%{opacity:0;transform:translate(-50%,-125%) scale(.9)}
+}
+.boss-num.heal{animation-name:bossNumHeal;animation-timing-function:ease-out}
+
+/* =========================
+   OBJECTIF ES ATTEINT : jauge brillante
+========================= */
+.es-gauge.full{box-shadow:0 0 0 2px #ffc400;animation:esGlow .9s ease-in-out infinite alternate}
+.es-gauge.full i{background:linear-gradient(90deg,#ffb000,#ffe45c 50%,#ffb000)}
+.es-gauge.full::after{content:"";position:absolute;top:0;bottom:0;left:-45%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.9),transparent);animation:esShine 1.4s ease-in-out infinite}
+@keyframes esShine{from{left:-45%}to{left:105%}}
+@keyframes esGlow{
+    from{box-shadow:0 0 0 2px #ffc400,0 0 6px 1px rgba(255,196,0,.6)}
+    to{box-shadow:0 0 0 2px #ffe45c,0 0 16px 5px rgba(255,220,80,.95)}
+}
+.player-sales.maxed .player-es-current{color:var(--yl);text-shadow:0 0 6px #ffc400,0 0 12px #ffc400;animation:esText .9s ease-in-out infinite alternate}
+@keyframes esText{from{text-shadow:0 0 4px #ffc400,0 0 8px #ffc400}to{text-shadow:0 0 9px #ffe45c,0 0 18px #ffe45c}}
+
+/* =========================
+   POP-UP ONE SHOT
+========================= */
+.os-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 45%,rgba(140,0,12,.6),rgba(0,0,0,.92) 72%);backdrop-filter:blur(3px)}
+.os-overlay[hidden]{display:none}
+.os-box{position:relative;overflow:hidden;width:min(480px,100%);padding:26px 28px 24px;text-align:center;background:radial-gradient(rgba(255,196,0,.11) 1.3px,transparent 1.8px) 0 0/11px 11px,linear-gradient(160deg,#2a1214,#0f0a0a);border:4px solid #000;border-radius:16px;box-shadow:0 0 0 4px var(--y),0 0 0 8px #000,10px 10px 0 8px var(--r),0 0 60px 12px rgba(227,6,19,.55);animation:osPop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes osPop{from{opacity:0;transform:scale(.6) rotate(-4deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.os-rays{position:absolute;left:50%;top:-150px;width:480px;height:480px;margin-left:-240px;border-radius:50%;background:repeating-conic-gradient(rgba(255,196,0,.3) 0 6deg,transparent 6deg 12deg);-webkit-mask-image:radial-gradient(circle,#000 0,transparent 68%);mask-image:radial-gradient(circle,#000 0,transparent 68%);animation:osSpin 14s linear infinite;pointer-events:none}
+@keyframes osSpin{to{transform:rotate(360deg)}}
+.os-skull{position:relative;font-size:64px;line-height:1;filter:drop-shadow(0 0 14px rgba(227,6,19,.95)) drop-shadow(3px 3px 0 #000);animation:osShake 1.4s ease-in-out infinite}
+@keyframes osShake{0%,100%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(4deg) scale(1.1)}}
+.os-title{position:relative;margin-top:2px;font:400 70px/1 var(--f);letter-spacing:3px;color:var(--y);-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:4px 4px 0 var(--r),8px 8px 0 #000;transform:rotate(-3deg)}
+.os-player{position:relative;display:inline-block;max-width:100%;margin:14px 0 8px;padding:2px 24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 32px/1.25 var(--f);letter-spacing:2px;color:#fff;background:var(--r);border:3px solid #000;box-shadow:4px 4px 0 var(--y);text-shadow:2px 2px 0 #000;transform:skewX(-10deg)}
+.os-text{position:relative;margin:6px 0 12px;font-size:16px;line-height:1.45}
+.os-text b{color:var(--y);font:400 22px var(--f);letter-spacing:1px}
+.os-warning{position:relative;display:inline-block;margin-bottom:18px;padding:2px 14px;font-size:12px;letter-spacing:.5px;color:var(--yl);border:2px dashed rgba(255,196,0,.6);border-radius:999px}
+.os-actions{position:relative;display:flex;flex-direction:column;gap:12px}
+.os-btn{width:100%;cursor:pointer;font:400 26px/1 var(--f);letter-spacing:1px;border:3px solid #000;border-radius:12px;transition:transform .08s,box-shadow .08s}
+.os-btn.go{padding:13px 10px;color:#fff;background:linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,0) 50%,rgba(0,0,0,.2)),var(--r);text-shadow:2px 2px 0 #000;box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 6px 0 #000;animation:osPulse 1.1s ease-in-out infinite}
+@keyframes osPulse{0%,100%{box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 6px 0 #000,0 0 0 0 rgba(227,6,19,.8)}50%{box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 6px 0 #000,0 0 0 10px rgba(227,6,19,0)}}
+.os-btn.go:hover{transform:translateY(-2px)}
+.os-btn.go:active{transform:translateY(4px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55);animation:none}
+.os-btn.no{padding:7px 10px;font-size:18px;color:#ddd;background:#1b1b1b;border:2px solid #666;box-shadow:0 3px 0 #000}
+.os-btn.no:hover{color:#fff;border-color:#aaa}
+.os-banner{position:fixed;left:0;right:0;top:36%;z-index:120;text-align:center;pointer-events:none;font:400 clamp(40px,8vw,110px)/1 var(--f);letter-spacing:3px;color:var(--y);-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:5px 5px 0 var(--r),10px 10px 0 #000;opacity:0}
+.os-banner::before{content:"";position:absolute;left:0;right:0;top:-14px;bottom:-14px;z-index:-1;background:linear-gradient(90deg,transparent,rgba(0,0,0,.88) 15%,rgba(0,0,0,.88) 85%,transparent)}
+.os-banner small{display:block;margin-top:8px;font-size:.36em;color:#fff;-webkit-text-stroke:2px #000;text-shadow:3px 3px 0 #000}
+.os-banner.show{animation:osBanner 1.9s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes osBanner{
+    0%{opacity:0;transform:translateX(-60%) scale(1.4)}
+    15%{opacity:1;transform:translateX(0) scale(1)}
+    80%{opacity:1;transform:translateX(0) scale(1.04)}
+    100%{opacity:0;transform:translateX(30%) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){.es-gauge.full,.es-gauge.full::after,.os-rays,.os-skull,.os-btn.go{animation:none}}
+
+/* =========================
+   POP-UP DU JEU (alertes et confirmations)
+========================= */
+.gp-overlay{--gp:var(--r);--gs:var(--r);--gg:rgba(227,6,19,.55);position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 45%,rgba(140,0,12,.55),rgba(0,0,0,.9) 72%);backdrop-filter:blur(3px);animation:gpFade .18s ease-out}
+.gp-overlay.gp-question{--gp:var(--y);--gs:var(--r);--gg:rgba(255,196,0,.45)}
+.gp-overlay.gp-success{--gp:#3ddc84;--gs:#1e9e5a;--gg:rgba(61,220,132,.5)}
+@keyframes gpFade{from{opacity:0}to{opacity:1}}
+.gp-box{position:relative;overflow:hidden;width:min(440px,100%);padding:24px 26px 22px;text-align:center;color:#fff;font:700 15px/1.4 'Trebuchet MS',Arial,sans-serif;background:radial-gradient(rgba(255,196,0,.11) 1.3px,transparent 1.8px) 0 0/11px 11px,linear-gradient(160deg,#2a1214,#0f0a0a);border:4px solid #000;border-radius:16px;box-shadow:0 0 0 4px var(--y),0 0 0 8px #000,10px 10px 0 8px var(--gp),0 0 50px 10px var(--gg);animation:gpPop .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes gpPop{from{opacity:0;transform:scale(.6) rotate(-3deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.gp-rays{position:absolute;left:50%;top:-170px;width:420px;height:420px;margin-left:-210px;border-radius:50%;background:repeating-conic-gradient(rgba(255,196,0,.26) 0 6deg,transparent 6deg 12deg);-webkit-mask-image:radial-gradient(circle,#000 0,transparent 66%);mask-image:radial-gradient(circle,#000 0,transparent 66%);animation:gpSpin 16s linear infinite;pointer-events:none}
+@keyframes gpSpin{to{transform:rotate(360deg)}}
+.gp-icon{position:relative;font-size:58px;line-height:1;filter:drop-shadow(0 0 12px var(--gg)) drop-shadow(3px 3px 0 #000);animation:gpWobble 1.6s ease-in-out infinite}
+.gp-icon .crown{font-size:58px}
+@keyframes gpWobble{0%,100%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(4deg) scale(1.08)}}
+.gp-title{position:relative;margin-top:4px;font:400 50px/1.05 var(--f);letter-spacing:2px;color:var(--y);-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:4px 4px 0 var(--gs),7px 7px 0 #000;transform:rotate(-2deg)}
+.gp-message{position:relative;margin:16px 0 20px;padding:10px 14px;font-size:16px;line-height:1.5;white-space:pre-line;overflow-wrap:anywhere;background:rgba(0,0,0,.55);border-left:6px solid var(--gp);border-radius:4px 10px 10px 4px;text-align:left}
+.gp-actions{position:relative;display:flex;gap:12px}
+.gp-btn{flex:1;min-width:0;padding:11px 10px;cursor:pointer;font:400 24px/1 var(--f);letter-spacing:1px;color:#000;background-color:var(--y);background-image:linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,0) 50%,rgba(0,0,0,.2));border:3px solid #000;border-radius:12px;box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 5px 0 #000;transition:transform .08s,box-shadow .08s}
+.gp-btn:hover{transform:translateY(-2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 7px 0 #000}
+.gp-btn:active{transform:translateY(4px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55)}
+.gp-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.gp-btn.gp-go.gp-danger{color:#fff;background-color:var(--r);text-shadow:2px 2px 0 #000}
+.gp-btn.gp-no{flex:0 0 36%;font-size:20px;color:#ddd;background-color:#1b1b1b;background-image:none;border:2px solid #666;box-shadow:0 4px 0 #000}
+.gp-btn.gp-no:hover{color:#fff;border-color:#aaa;box-shadow:0 6px 0 #000}
+.gp-btn.gp-no:active{box-shadow:none}
+@media(prefers-reduced-motion:reduce){.gp-rays,.gp-icon{animation:none}}
+
+
+/* =========================
+   DOUBLE OBJECTIF : barre "win streak" + pouvoir Full Heal
+========================= */
+.es-gauge .over{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff5a00,#ff2a00);transition:width .3s}
+.es-gauge.streak{height:16px;box-shadow:0 0 0 2px #ff5a00,0 0 12px 3px rgba(255,90,0,.85);animation:streakGlow .55s ease-in-out infinite alternate}
+.teams-mode .es-gauge.streak{height:13px}
+.es-gauge.streak i{background:#ff2a00}
+.es-gauge.streak .over{width:100%!important;background:repeating-linear-gradient(115deg,#ff2a00 0 9px,#ff9800 9px 18px,#ffe45c 18px 27px);background-size:54px 100%;animation:streakFlow .45s linear infinite}
+.es-gauge.streak::after{background:linear-gradient(100deg,transparent,rgba(255,255,255,.95),transparent);animation:esShine .9s ease-in-out infinite}
+.player-sales.streak .player-es-current{color:#ffb300;text-shadow:0 0 6px #ff2a00,0 0 14px #ff2a00;animation:streakText .5s ease-in-out infinite alternate}
+.player-sales.streak::before{content:"🔥";flex:0 0 auto;font-size:.95em;line-height:1;filter:drop-shadow(0 0 5px #ff2a00);animation:streakFlame .6s ease-in-out infinite alternate}
+.player-card.streak{box-shadow:0 0 0 3px #ff5a00,6px 6px 0 3px #000,0 0 22px 5px rgba(255,90,0,.65)}
+.player-card.is-boss.streak{box-shadow:0 0 0 3px var(--r),6px 6px 0 3px #000,0 0 26px 8px rgba(255,90,0,.75)}
+@keyframes streakFlow{to{background-position:54px 0}}
+@keyframes streakGlow{from{box-shadow:0 0 0 2px #ff5a00,0 0 8px 2px rgba(255,90,0,.7)}to{box-shadow:0 0 0 2px #ffb300,0 0 18px 6px rgba(255,60,0,.95)}}
+@keyframes streakText{from{transform:scale(1)}to{transform:scale(1.12)}}
+@keyframes streakFlame{from{transform:scale(.9) rotate(-8deg)}to{transform:scale(1.2) rotate(8deg)}}
+.power-button{position:absolute;z-index:6;left:8px;bottom:8px;width:clamp(28px,9cqw,38px);aspect-ratio:1;padding:0;display:flex;align-items:center;justify-content:center;font-size:clamp(14px,5cqw,20px);line-height:1;background:linear-gradient(#7dffa6,#12b34f);border:3px solid #000;border-radius:50%;cursor:pointer;animation:powerPulse 1.1s ease-in-out infinite}
+.power-button:hover{transform:scale(1.12)}
+.power-button:disabled{opacity:.5;animation:none;cursor:default;transform:none}
+@keyframes powerPulse{0%,100%{box-shadow:0 3px 0 #000,0 0 0 0 rgba(0,255,110,.85)}50%{box-shadow:0 3px 0 #000,0 0 0 9px rgba(0,255,110,0)}}
+
+/* Animation FULL HEAL sur la photo du Boss : soin vert puis dôme violet */
+.boss-image-container.fullheal img{animation:bossImgFullHeal 2.6s ease}
+.boss-image-container.fullheal::after{animation:bossFullHealFlash 2.6s ease}
+@keyframes bossImgFullHeal{
+    0%{transform:scale(1);filter:none}
+    12%{transform:scale(1.09);filter:brightness(1.9) saturate(1.8)}
+    25%{transform:scale(1.03);filter:brightness(1.3) saturate(1.5)}
+    38%{transform:scale(1.07);filter:brightness(1.7) saturate(1.8)}
+    55%{transform:scale(1.04);filter:brightness(1.25) saturate(1.3) hue-rotate(40deg)}
+    75%{transform:scale(1.06);filter:brightness(1.5) saturate(1.6) hue-rotate(70deg)}
+    100%{transform:scale(1);filter:none}
+}
+@keyframes bossFullHealFlash{
+    0%{opacity:0;background:rgba(0,255,80,0)}
+    12%{opacity:.75;background:rgba(0,255,80,.45)}
+    40%{opacity:.35;background:rgba(0,255,80,.25)}
+    58%{opacity:.7;background:rgba(170,80,255,.5)}
+    100%{opacity:0;background:rgba(170,80,255,0)}
+}
+.boss-shield-dome.big{width:115%;animation-duration:1.4s}
+@media(prefers-reduced-motion:reduce){.es-gauge.streak,.es-gauge.streak .over,.es-gauge.streak::after,.player-sales.streak .player-es-current,.player-sales.streak::before,.power-button{animation:none}}
+
+/* Boss déjà au maximum (PV + bouclier) : pulsation dorée "MAX" */
+.boss-image-container.maxed img{animation:bossImgMaxed 1.4s ease}
+.boss-image-container.maxed::after{animation:bossMaxedFlash 1.4s ease}
+@keyframes bossImgMaxed{0%{transform:scale(1);filter:none}30%{transform:scale(1.04);filter:brightness(1.35) saturate(1.2) sepia(.3)}60%{transform:scale(1.02);filter:brightness(1.15) sepia(.15)}100%{transform:scale(1);filter:none}}
+@keyframes bossMaxedFlash{0%{opacity:0;background:rgba(255,200,0,0)}30%{opacity:.5;background:rgba(255,215,90,.35)}100%{opacity:0;background:rgba(255,200,0,0)}}
+.boss-max-ring{left:50%;top:50%;width:55%;aspect-ratio:1;border-radius:50%;border:5px solid rgba(255,225,120,.95);box-shadow:0 0 18px 4px rgba(255,190,0,.7),inset 0 0 18px 2px rgba(255,190,0,.45);transform:translate(-50%,-50%) scale(.3);opacity:0;animation:bossHealRing .9s ease-out var(--d,0s) forwards}
+</style>
+</head>
+
+<body>
+<div id="stage">
+
+<header>
+
+    <h1>⚔️ ES Boss Fight</h1>
+
+    <div id="battle-goal" class="battle-goal">
+
+        <div class="bg-top">
+
+            <span class="bg-label">🎯 Objectif de bataille</span>
+
+            <span class="bg-value"><b id="battle-current">0</b> sur <b id="battle-target">100</b> ES</span>
+
+        </div>
+
+        <div class="bg-bar"><i id="battle-fill"></i></div>
+
+    </div>
+
+    <button
+        class="reglages-button"
+        onclick="openReglages()"
+    >
+        ⚙️ Réglages
+    </button>
+
+</header>
+
+<div class="main">
+
+    <div class="boss-area">
+
+        <div class="attack-rules"><div class="rules-title">⚔️ Règles des attaquants</div><div class="rule"><span class="cond">Formule Simple</span><b class="res">1 dégât</b></div><div class="rule"><span class="cond">Formule Double</span><b class="res">3 dégâts</b></div><div class="rule"><span class="cond">Formule Triple</span><b class="res">6 dégâts</b></div><div class="rule"><span class="cond">Achever le Boss</span><b class="res">Nouveau Boss</b></div><div class="rule"><span class="cond">Atteindre son objectif</span><b class="res hot">Pouvoir One Shot</b></div></div>
+
+        <div class="boss-panel">
+
+            <div
+                id="boss-image-container"
+                class="boss-image-container"
+            >
+
+                <img
+                    id="boss-image"
+                    src=""
+                    alt="Boss"
+                >
+
+                <div class="boss-shield-aura"></div>
+
+                <div id="boss-events" class="boss-events"></div>
+
+                <div class="boss-name">
+                    <span id="boss-name">
+                        Kevin
+                    </span>
+                </div>
+
+                </div>
+
+                <div class="boss-info">
+
+                    <div
+                        id="boss-hp-text"
+                        class="boss-hp-text"
+                    >
+                        10 / 10 PV
+                    </div>
+
+                    <div class="boss-hp-bar"><div id="boss-hp-ghost" class="boss-hp-ghost"></div>
+
+                        <div
+                            id="boss-hp-fill"
+                            class="boss-hp-fill"
+                            style="width: 100%;"
+                        ></div>
+
+                    </div>
+
+                    <div
+                        id="boss-shield-bar"
+                        class="boss-shield-bar"
+                    >
+
+                        <div
+                            id="boss-shield-fill"
+                            class="boss-shield-fill"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+        </div>
+
+        <div class="boss-rules"><div class="rules-title"><i class="crown"></i> Règles du Boss</div><div class="rule"><span class="cond">Formule Simple</span><b class="res">+1 PV</b></div><div class="rule"><span class="cond">Formule Double</span><b class="res">+3 PV</b></div><div class="rule"><span class="cond">Formule Triple</span><b class="res">+6 PV</b></div><div class="rule"><span class="cond">PV max atteints</span><b class="res">Bouclier +1 / +2 / +3 🛡️</b></div><div class="rule"><span class="cond">Double de son objectif</span><b class="res hot">Pouvoir Full Heal 💚</b></div></div>
+
+    </div>
+
+    <div class="content">
+
+        <div
+            id="players"
+            class="players"
+        ></div>
+
+        <div class="history">
+
+            <div class="history-title">
+                📜 Historique
+            </div>
+
+            <div
+                id="history-list"
+                class="history-list"
+            ></div>
+
+        </div>
+
+    </div>
+
+</div>
+</div>
+<div id="oneshot-modal" class="os-overlay" hidden>
+    <div class="os-box" role="dialog" aria-modal="true" aria-labelledby="os-title">
+        <div class="os-rays"></div>
+        <div class="os-skull" id="os-skull">☠️</div>
+        <div class="os-title" id="os-title">ONE SHOT</div>
+        <div class="os-player" id="os-player"></div>
+        <p class="os-text" id="os-text">met le Boss <b>K.O.</b> d'un seul coup<br>et prend sa place sur le trône.</p>
+        <div class="os-warning" id="os-warning">⚠️ Pouvoir à usage unique</div>
+        <div class="os-actions">
+            <button type="button" class="os-btn go" id="os-go">💀 Lancer le One Shot</button>
+            <button type="button" class="os-btn no" id="os-no">Annuler</button>
+        </div>
+    </div>
+</div>
+<div id="os-banner" class="os-banner"></div>
+
+<script>
+
+/* =========================
+   POP-UP DU JEU (remplace alert() et confirm())
+========================= */
+
+const gamePopupQueue = [];
+let gamePopupBusy = false;
+
+const GAME_POPUP_THEMES = {
+    error:    { icon: "💥",    title: "OUPS !",       cls: "gp-error" },
+    danger:   { icon: "⚠️",    title: "ATTENTION",    cls: "gp-error" },
+    question: { icon: "crown", title: "CONFIRMER",    cls: "gp-question" },
+    success:  { icon: "✅",    title: "C'EST FAIT !", cls: "gp-success" }
+};
+
+function gamePopup(options) {
+
+    return new Promise(resolve => {
+
+        gamePopupQueue.push({
+            options: options || {},
+            resolve
+        });
+
+        gamePopupNext();
+    });
+}
+
+function gamePopupNext() {
+
+    if (gamePopupBusy || gamePopupQueue.length === 0) {
+        return;
+    }
+
+    gamePopupBusy = true;
+
+    const { options, resolve } = gamePopupQueue.shift();
+
+    const theme =
+        GAME_POPUP_THEMES[options.type] ||
+        GAME_POPUP_THEMES.error;
+
+    const isConfirm = !!options.confirm;
+    const isDanger = options.type === "danger" || options.type === "error";
+
+    const overlay = document.createElement("div");
+    overlay.className = "gp-overlay " + theme.cls;
+
+    const box = document.createElement("div");
+    box.className = "gp-box";
+    box.setAttribute("role", isConfirm ? "alertdialog" : "alert");
+    box.setAttribute("aria-modal", "true");
+
+    const rays = document.createElement("div");
+    rays.className = "gp-rays";
+
+    const icon = document.createElement("div");
+    icon.className = "gp-icon";
+
+    const iconValue = options.icon || theme.icon;
+
+    if (iconValue === "crown") {
+
+        const crown = document.createElement("i");
+        crown.className = "crown";
+        icon.appendChild(crown);
+
+    } else {
+
+        icon.textContent = iconValue;
+    }
+
+    const title = document.createElement("div");
+    title.className = "gp-title";
+    title.textContent = options.title || theme.title;
+
+    const message = document.createElement("div");
+    message.className = "gp-message";
+    message.textContent =
+        String(options.message == null ? "" : options.message)
+            .replace(/^- /gm, "• ");
+
+    const actions = document.createElement("div");
+    actions.className = "gp-actions";
+
+    let cancelButton = null;
+
+    if (isConfirm) {
+
+        cancelButton = document.createElement("button");
+        cancelButton.type = "button";
+        cancelButton.className = "gp-btn gp-no";
+        cancelButton.textContent = options.cancelText || "Annuler";
+
+        actions.appendChild(cancelButton);
+    }
+
+    const okButton = document.createElement("button");
+    okButton.type = "button";
+    okButton.className =
+        "gp-btn gp-go" +
+        (options.type === "danger" ? " gp-danger" : "");
+    okButton.textContent =
+        options.confirmText || (isConfirm ? "Confirmer" : "OK");
+
+    actions.appendChild(okButton);
+
+    box.append(rays, icon, title, message, actions);
+    overlay.appendChild(box);
+
+    const close = value => {
+
+        document.removeEventListener("keydown", onKey);
+
+        overlay.remove();
+
+        gamePopupBusy = false;
+
+        resolve(value);
+
+        gamePopupNext();
+    };
+
+    const onKey = event => {
+
+        if (event.key === "Escape") {
+            event.preventDefault();
+            close(!isConfirm);
+        }
+    };
+
+    okButton.addEventListener("click", () => close(true));
+
+    if (cancelButton) {
+        cancelButton.addEventListener("click", () => close(false));
+    }
+
+    overlay.addEventListener("click", event => {
+
+        if (event.target === overlay) {
+            close(!isConfirm);
+        }
+    });
+
+    document.addEventListener("keydown", onKey);
+
+    document.body.appendChild(overlay);
+
+    // Action destructrice : le focus démarre sur "Annuler"
+    // pour qu'un Entrée trop rapide ne valide pas par erreur.
+    (isConfirm && isDanger && cancelButton
+        ? cancelButton
+        : okButton
+    ).focus();
+}
+
+function gameAlert(message, options) {
+
+    return gamePopup(
+        Object.assign({ type: "error", message }, options)
+    );
+}
+
+function gameConfirm(options) {
+
+    return gamePopup(
+        Object.assign({}, options, { confirm: true })
+    );
+}
+
+window.alert = function (message) {
+
+    gameAlert(message);
+};
+
+
+let currentGame = null;
+let currentPlayers = [];
+let currentTeams = [];
+let refreshInProgress = false;
+let actionInProgress = false;
+let lastHpPercent = null;
+
+/* =========================
+   UTILITAIRES
+========================= */
+
+function defaultImage(emoji) {
+
+    return "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(`
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="300"
+                height="300"
+                viewBox="0 0 300 300"
+            >
+                <rect
+                    width="300"
+                    height="300"
+                    fill="#222"
+                />
+
+                <text
+                    x="150"
+                    y="165"
+                    text-anchor="middle"
+                    font-size="110"
+                >
+                    ${emoji}
+                </text>
+
+            </svg>
+        `);
+}
+
+
+/* =========================
+   BOSS PAR DÉFAUT (silhouette en costume + couronne)
+========================= */
+
+const DEFAULT_BOSS_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 900 240\" preserveAspectRatio=\"none\"><defs><linearGradient id=\"cg\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#ffe45c\"/><stop offset=\".55\" stop-color=\"#ffc400\"/><stop offset=\".56\" stop-color=\"#ffa800\"/><stop offset=\"1\" stop-color=\"#ff9800\"/></linearGradient><linearGradient id=\"cd\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#ff3b3b\"/><stop offset=\".55\" stop-color=\"#e30613\"/><stop offset=\".56\" stop-color=\"#c40410\"/><stop offset=\"1\" stop-color=\"#a80009\"/></linearGradient><linearGradient id=\"cr\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#ff5a5a\"/><stop offset=\"1\" stop-color=\"#e30613\"/></linearGradient><radialGradient id=\"bg\" cx=\".5\" cy=\".55\" r=\".62\"><stop offset=\"0\" stop-color=\"#8a0c16\"/><stop offset=\".55\" stop-color=\"#2c0508\"/><stop offset=\"1\" stop-color=\"#090909\"/></radialGradient><filter id=\"gl\" x=\"-60%\" y=\"-60%\" width=\"220%\" height=\"220%\"><feGaussianBlur stdDeviation=\"5\"/></filter></defs><path d=\"M3 40L1 12L15 26L20 4L27 24L32 0L37 24L44 4L49 26L63 12L61 40Z\" fill=\"url(#cg)\" stroke=\"#000\" stroke-width=\"4.5\" stroke-linejoin=\"round\"/><path d=\"M6 35L4.2 17M22 11L25 21M34 8L36 20M46 12L48 21\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" opacity=\".85\"/><path d=\"M3 40H61L59 48H5Z\" fill=\"url(#cd)\" stroke=\"#000\" stroke-width=\"4\" stroke-linejoin=\"round\"/><circle cx=\"14\" cy=\"44\" r=\"1.9\" fill=\"#ffe45c\" stroke=\"#000\" stroke-width=\"1\"/><circle cx=\"24\" cy=\"44\" r=\"1.9\" fill=\"#ffe45c\" stroke=\"#000\" stroke-width=\"1\"/><circle cx=\"40\" cy=\"44\" r=\"1.9\" fill=\"#ffe45c\" stroke=\"#000\" stroke-width=\"1\"/><circle cx=\"50\" cy=\"44\" r=\"1.9\" fill=\"#ffe45c\" stroke=\"#000\" stroke-width=\"1\"/><path d=\"M32 26L38.5 33.5L32 41L25.5 33.5Z\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M31 29.5L28.6 33L31 33.6Z\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"1\" cy=\"12\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"-0.10000000000000009\" cy=\"10.8\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"20\" cy=\"4\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"18.9\" cy=\"2.8\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"32\" cy=\"0\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"30.9\" cy=\"-1.2\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"44\" cy=\"4\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"42.9\" cy=\"2.8\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"63\" cy=\"12\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"61.9\" cy=\"10.8\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><rect width=\"900\" height=\"240\" fill=\"url(#bg)\"/><g fill=\"#ffc400\" opacity=\".13\"><polygon points=\"450,135 1350,135 1345,229\"/><polygon points=\"450,135 1261,525 1216,608\"/><polygon points=\"450,135 1011,839 935,893\"/><polygon points=\"450,135 650,1012 557,1029\"/><polygon points=\"450,135 250,1012 159,987\"/><polygon points=\"450,135 -111,839 -182,776\"/><polygon points=\"450,135 -361,525 -397,439\"/><polygon points=\"450,135 -450,135 -445,41\"/><polygon points=\"450,135 -361,-255 -316,-338\"/><polygon points=\"450,135 -111,-569 -35,-623\"/><polygon points=\"450,135 250,-742 343,-759\"/><polygon points=\"450,135 650,-742 741,-717\"/><polygon points=\"450,135 1011,-569 1082,-506\"/><polygon points=\"450,135 1261,-255 1297,-169\"/></g><path d=\"M300 240C300 178 372 160 450 160C528 160 600 178 600 240Z\" fill=\"#050505\" stroke=\"#1d1d1d\" stroke-width=\"3\"/><path d=\"M420 160L450 222L480 160Z\" fill=\"#e8e8e8\"/><path d=\"M443 176H457L463 232L450 240L437 232Z\" fill=\"#e30613\" stroke=\"#000\" stroke-width=\"2\"/><path d=\"M420 160L392 240M480 160L508 240\" stroke=\"#2a2a2a\" stroke-width=\"4\"/><ellipse cx=\"450\" cy=\"108\" rx=\"46\" ry=\"52\" fill=\"#050505\" stroke=\"#1d1d1d\" stroke-width=\"3\"/><g filter=\"url(#gl)\" fill=\"#ff1a1a\"><ellipse cx=\"431\" cy=\"108\" rx=\"12\" ry=\"5\" transform=\"rotate(14 431 108)\"/><ellipse cx=\"469\" cy=\"108\" rx=\"12\" ry=\"5\" transform=\"rotate(-14 469 108)\"/></g><g fill=\"#ff3b30\"><ellipse cx=\"431\" cy=\"108\" rx=\"10\" ry=\"3.6\" transform=\"rotate(14 431 108)\"/><ellipse cx=\"469\" cy=\"108\" rx=\"10\" ry=\"3.6\" transform=\"rotate(-14 469 108)\"/></g><g transform=\"translate(396 22) scale(1.6)\"><path d=\"M3 40L1 12L15 26L20 4L27 24L32 0L37 24L44 4L49 26L63 12L61 40Z\" fill=\"url(#cg)\" stroke=\"#000\" stroke-width=\"4.5\" stroke-linejoin=\"round\"/><path d=\"M6 35L4.2 17M22 11L25 21M34 8L36 20M46 12L48 21\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" opacity=\".85\"/><path d=\"M3 40H61L59 48H5Z\" fill=\"url(#cd)\" stroke=\"#000\" stroke-width=\"4\" stroke-linejoin=\"round\"/><circle cx=\"14\" cy=\"44\" r=\"1.9\" fill=\"#ffe45c\" stroke=\"#000\" stroke-width=\"1\"/><circle cx=\"24\" cy=\"44\" r=\"1.9\" fill=\"#ffe45c\" stroke=\"#000\" stroke-width=\"1\"/><circle cx=\"40\" cy=\"44\" r=\"1.9\" fill=\"#ffe45c\" stroke=\"#000\" stroke-width=\"1\"/><circle cx=\"50\" cy=\"44\" r=\"1.9\" fill=\"#ffe45c\" stroke=\"#000\" stroke-width=\"1\"/><path d=\"M32 26L38.5 33.5L32 41L25.5 33.5Z\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><path d=\"M31 29.5L28.6 33L31 33.6Z\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"1\" cy=\"12\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"-0.10000000000000009\" cy=\"10.8\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"20\" cy=\"4\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"18.9\" cy=\"2.8\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"32\" cy=\"0\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"30.9\" cy=\"-1.2\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"44\" cy=\"4\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"42.9\" cy=\"2.8\" r=\"1\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"63\" cy=\"12\" r=\"3.6\" fill=\"url(#cr)\" stroke=\"#000\" stroke-width=\"2.4\"/><circle cx=\"61.9\" cy=\"10.8\" r=\"1\" fill=\"#fff\" opacity=\".9\"/></g></svg>";
+
+function defaultBossImage() {
+
+    return "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(DEFAULT_BOSS_SVG);
+}
+
+/* =========================
+   IMPACTS PROPORTIONNELS AUX DÉGÂTS / SOINS
+========================= */
+
+function bossPanelParts(container) {
+
+    return {
+        panel: container.closest(".boss-panel"),
+        bar: container.closest(".boss-panel").querySelector(".boss-hp-bar")
+    };
+}
+
+function starPolygon(points) {
+
+    const pts = [];
+
+    for (let i = 0; i < points * 2; i++) {
+
+        const r = i % 2
+            ? 32 + Math.random() * 10
+            : 46 + Math.random() * 4;
+
+        const a = Math.PI * i / points;
+
+        pts.push(
+            (50 + r * Math.sin(a)).toFixed(1) + "% " +
+            (50 - r * Math.cos(a)).toFixed(1) + "%"
+        );
+    }
+
+    return "polygon(" + pts.join(",") + ")";
+}
+
+function spawnHitFx(add, amount) {
+
+    const pw = Math.max(0.15, Math.min(1, amount / 6));
+    const tier = amount >= 6 ? 3 : amount >= 3 ? 2 : 1;
+
+    const palette = [
+        null,
+        { c: "#ffe45c", g: "#ff9800", c1: "#ffe45c", c2: "#ff9800" },
+        { c: "#ffab00", g: "#ff5a00", c1: "#ffd000", c2: "#ff4d00" },
+        { c: "#ff3b30", g: "#ff0000", c1: "#ffffff", c2: "#ff2a00" }
+    ][tier];
+
+    const words = [null, "POW!", "BAM!!", "CRASH!!!"];
+
+    add("boss-vignette");
+
+    const burst = add("boss-burst", {
+        "--c1": palette.c1,
+        "--c2": palette.c2
+    });
+
+    burst.style.clipPath =
+        starPolygon(tier === 3 ? 20 : tier === 2 ? 15 : 11);
+
+    if (tier >= 2) {
+        add("hit-ring");
+    }
+
+    if (tier === 3) {
+        add("hit-ring", { "animation-delay": "0.12s" });
+    }
+
+    const sparks = Math.min(30, 6 + amount * 3);
+
+    for (let i = 0; i < sparks; i++) {
+
+        add("hit-spark", {
+            "--a": ((360 / sparks) * i + Math.random() * 20) + "deg",
+            "--dist": (70 + pw * 130 + Math.random() * 70) + "px",
+            "--t": (0.45 + Math.random() * 0.3) + "s"
+        });
+    }
+
+    const num = add("boss-num", {
+        "--fs": (40 + pw * 80) + "px",
+        "--c": palette.c,
+        "--g": palette.g,
+        "--rot": (Math.random() * 10 - 5) + "deg",
+        "--dur": (1 + pw * 0.4) + "s"
+    });
+
+    num.textContent = "-" + amount;
+
+    const word = add("boss-word", {
+        "--rot": (Math.random() * 16 - 8) + "deg",
+        "--x": (62 + Math.random() * 24) + "%",
+        "--y": (16 + Math.random() * 12) + "%"
+    });
+
+    word.textContent = words[tier];
+}
+
+function spawnHealFx(add, amount, skipNum) {
+
+    const pw = Math.max(0.15, Math.min(1, amount / 6));
+    const tier = amount >= 6 ? 3 : amount >= 3 ? 2 : 1;
+
+    for (let k = 0; k < tier; k++) {
+        add("boss-heal-ring", { "--d": (k * 0.18) + "s" });
+    }
+
+    if (tier >= 2) {
+
+        const beams = tier === 3 ? 7 : 4;
+
+        for (let i = 0; i < beams; i++) {
+
+            add("boss-beam", {
+                "--x": (6 + Math.random() * 88) + "%",
+                "--bw": (10 + Math.random() * 16 + pw * 10) + "px",
+                "--d": (Math.random() * 0.3) + "s"
+            });
+        }
+    }
+
+    const plus = Math.min(26, 4 + amount * 3);
+
+    for (let i = 0; i < plus; i++) {
+
+        const el = add("boss-plus", {
+            "--x": (8 + Math.random() * 84) + "%",
+            "--rise": (90 + Math.random() * 100) + "px",
+            "--s": (16 + pw * 14 + Math.random() * 14) + "px",
+            "--d": (Math.random() * 0.4) + "s"
+        });
+
+        el.textContent = "+";
+    }
+
+    const orbs = Math.min(24, 6 + amount * 3);
+
+    for (let i = 0; i < orbs; i++) {
+
+        add("boss-orb", {
+            "--x": (6 + Math.random() * 88) + "%",
+            "--dx": (Math.random() * 60 - 30) + "px",
+            "--rise": (110 + Math.random() * 120) + "px",
+            "--s": (6 + Math.random() * 8) + "px",
+            "--d": (Math.random() * 0.5) + "s"
+        });
+    }
+
+    if (skipNum) {
+        return;
+    }
+
+    const num = add("boss-num heal", {
+        "--fs": (40 + pw * 80) + "px",
+        "--c": "#c8ffd8",
+        "--g": "#00ff64",
+        "--dur": (1.3 + pw * 0.4) + "s"
+    });
+
+    num.textContent = "+" + amount;
+}
+
+/* =========================
+   POP-UP ONE SHOT
+========================= */
+
+function confirmOneShot(player, kind) {
+
+    // kind : "oneshot" | "bonus" (ou true) | "heal"
+    kind = kind === true ? "bonus" : (kind || "oneshot");
+
+    const texts = {
+        oneshot: {
+            skull: "☠️",
+            title: "ONE SHOT",
+            text: "met le Boss <b>K.O.</b> d'un seul coup<br>et prend sa place sur le trône.",
+            warning: "⚠️ Pouvoir à usage unique",
+            go: "💀 Lancer le One Shot"
+        },
+        bonus: {
+            skull: "☠️",
+            title: "ONE SHOT",
+            text: "met le Boss <b>K.O.</b> d'un seul coup<br>et prend sa place sur le trône.",
+            warning: "⚠️ One Shot bonus à usage unique",
+            go: "💀 Lancer le One Shot"
+        },
+        heal: {
+            skull: "💚",
+            title: "FULL HEAL",
+            text: "récupère <b>tous ses PV</b><br>et gagne un <b>bouclier max</b> 🛡️.",
+            warning: "⚠️ Pouvoir à usage unique",
+            go: "💚 Lancer le Full Heal"
+        }
+    }[kind];
+
+    return new Promise(resolve => {
+
+        document.getElementById("os-skull").textContent = texts.skull;
+        document.getElementById("os-title").textContent = texts.title;
+        document.getElementById("os-text").innerHTML = texts.text;
+        document.getElementById("os-warning").textContent = texts.warning;
+        document.getElementById("os-go").textContent = texts.go;
+
+        const modal = document.getElementById("oneshot-modal");
+        const go = document.getElementById("os-go");
+        const no = document.getElementById("os-no");
+
+        document.getElementById("os-player").textContent = player;
+
+        modal.hidden = false;
+
+        const close = value => {
+
+            modal.hidden = true;
+
+            go.removeEventListener("click", onGo);
+            no.removeEventListener("click", onNo);
+            modal.removeEventListener("click", onBackdrop);
+            document.removeEventListener("keydown", onKey);
+
+            resolve(value);
+        };
+
+        const onGo = () => close(true);
+        const onNo = () => close(false);
+
+        const onBackdrop = event => {
+            if (event.target === modal) {
+                close(false);
+            }
+        };
+
+        const onKey = event => {
+            if (event.key === "Escape") {
+                close(false);
+            }
+        };
+
+        go.addEventListener("click", onGo);
+        no.addEventListener("click", onNo);
+        modal.addEventListener("click", onBackdrop);
+        document.addEventListener("keydown", onKey);
+
+        go.focus();
+    });
+}
+
+function showBanner(title, subtitle) {
+
+    const banner = document.getElementById("os-banner");
+
+    if (!banner) {
+        return;
+    }
+
+    banner.textContent = title;
+
+    const small = document.createElement("small");
+
+    small.textContent = subtitle;
+
+    banner.appendChild(small);
+
+    banner.classList.remove("show");
+
+    void banner.offsetWidth;
+
+    banner.classList.add("show");
+}
+
+function showOneShotBanner(player) {
+
+    showBanner("☠️ ONE SHOT ☠️", player + " prend la place du Boss");
+}
+
+function showNewBossBanner(player) {
+
+    showBanner("👑 NOUVEAU BOSS 👑", player + " prend la place du Boss");
+}
+
+function escapeJs(value) {
+
+    return String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'");
+}
+
+function openReglages() {
+
+    window.location.href =
+        "/reglages.html";
+}
+
+/* =========================
+   PHOTO BOSS
+========================= */
+
+function getBossPhoto(game) {
+
+    if (
+        game &&
+        game.boss_photo &&
+        game.boss_photo.trim() !== ""
+    ) {
+        return game.boss_photo;
+    }
+
+    return defaultBossImage();
+}
+
+/* =========================
+   AFFICHAGE BOSS
+========================= */
+
+function updateBossDisplay(game) {
+
+    if (!game) {
+        return;
+    }
+
+    const bossImage =
+        document.getElementById(
+            "boss-image"
+        );
+
+    const bossName =
+        document.getElementById(
+            "boss-name"
+        );
+
+    const bossHpText =
+        document.getElementById(
+            "boss-hp-text"
+        );
+
+    const bossHpFill =
+        document.getElementById(
+            "boss-hp-fill"
+        );
+
+    bossName.textContent =
+        game.boss_name || "Boss";
+
+    const hp =
+        Number(game.boss_hp) || 0;
+
+    const maxHp =
+        Number(game.max_boss_hp) || 1;
+
+    const shield =
+        Number(game.boss_shield) || 0;
+
+    bossHpText.textContent =
+        shield > 0
+            ? `${hp} / ${maxHp} PV · 🛡️ ${shield}`
+            : `${hp} / ${maxHp} PV`;
+
+    const shieldBar =
+        document.getElementById(
+            "boss-shield-bar"
+        );
+
+    const shieldFill =
+        document.getElementById(
+            "boss-shield-fill"
+        );
+
+    const bossContainer =
+        document.getElementById(
+            "boss-image-container"
+        );
+
+    if (shieldBar && shieldFill) {
+
+        shieldBar.style.display =
+            shield > 0 ? "block" : "none";
+
+        shieldFill.style.width =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    (shield / maxHp) * 100
+                )
+            ) + "%";
+    }
+
+    if (bossContainer) {
+
+        bossContainer.classList.toggle(
+            "shielded",
+            shield > 0
+        );
+    }
+
+    const percent =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                (hp / maxHp) * 100
+            )
+        );
+
+    bossHpFill.style.width = percent + "%";
+
+    const bossPanelEl = document.querySelector(".boss-panel");
+
+    if (bossPanelEl) {
+        bossPanelEl.classList.toggle(
+            "low-hp",
+            hp > 0 && percent <= LOW_HP_THRESHOLD
+        );
+    }
+
+    // Traînée blanche/orange : la barre "perd" visiblement les PV encaissés
+    const hpGhost = document.getElementById("boss-hp-ghost");
+
+    if (hpGhost) {
+        if (lastHpPercent === null || percent >= lastHpPercent) {
+            hpGhost.style.transition = "none";
+            hpGhost.style.width = percent + "%";
+            void hpGhost.offsetWidth;
+            hpGhost.style.transition = "";
+        } else {
+            hpGhost.style.width = percent + "%";
+        }
+    }
+
+    lastHpPercent = percent;
+
+    bossImage.src =
+        getBossPhoto(game);
+}
+
+/* =========================
+   PHOTO JOUEUR
+========================= */
+
+function getPlayerPhoto(player) {
+
+    if (
+        player &&
+        player.photo &&
+        player.photo.trim() !== ""
+    ) {
+        return player.photo;
+    }
+
+    return defaultImage("👤");
+}
+
+/* =========================
+   CHANGEMENT GRILLE
+========================= */
+
+// Hauteur de la zone boss/règles (px). Modifier ici pour ajuster la taille des cadres.
+const BOSS_H = 260;
+document.documentElement.style.setProperty("--boss-h", BOSS_H + "px");
+
+// Le boss est considéré « low HP » quand il lui reste ce pourcentage de PV ou moins.
+const LOW_HP_THRESHOLD = 30;
+
+const TEAM_BLOCK_EXTRA = 46;   // cadre d'équipe : bordure + marges (étiquette comprise)
+const TEAM_GAP = 22;           // espace entre deux cadres d'équipe
+const TEAM_CARD_GAP = 12;      // espace entre deux cartes d'une même équipe
+const TEAM_ROW_MIN = 160;      // hauteur minimale d'une carte joueur en équipes
+const TEAM_ROW_MAX = 180;      // hauteur maximale (taille d'origine)
+
+function escapeTeamHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Nombre de colonnes selon le nombre de cartes (même règle que l'affichage classique)
+function gridColumnsFor(count) {
+
+    if (count <= 1) return 1;
+    if (count === 2) return 2;
+    if (count === 3) return 3;
+    if (count === 4) return 2;
+    if (count <= 6) return 3;
+    if (count <= 8) return 4;
+    if (count === 9) return 3;
+
+    return 4;
+}
+
+// Nombre de colonnes commun à toutes les équipes : calculé sur la plus grande,
+// pour que toutes les cartes joueurs aient exactement la même taille.
+function teamColumns(groups) {
+
+    const biggest = Math.max(
+        1,
+        ...groups.map(group => group.players.length)
+    );
+
+    return gridColumnsFor(biggest);
+}
+
+// Regroupe les joueurs par équipe. Renvoie null s'il n'y a aucune équipe
+// (dans ce cas l'affichage reste celui d'avant).
+function getTeamGroups() {
+
+    if (!currentTeams.length || !currentPlayers.length) {
+        return null;
+    }
+
+    const groups =
+        currentTeams
+            .map(team => ({
+                team,
+                players: currentPlayers.filter(
+                    player => Number(player.team_id) === team.id
+                )
+            }))
+            .filter(group => group.players.length);
+
+    const withoutTeam =
+        currentPlayers.filter(
+            player => !currentTeams.some(
+                team => team.id === Number(player.team_id)
+            )
+        );
+
+    if (withoutTeam.length) {
+        groups.push({
+            team: null,
+            players: withoutTeam
+        });
+    }
+
+    return groups;
+}
+
+function teamColors(hex) {
+
+    const color =
+        /^#[0-9a-f]{6}$/i.test(hex || "")
+            ? hex
+            : "#888888";
+
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+
+    const luminance =
+        (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    return {
+        color,
+        bg: `rgba(${r}, ${g}, ${b}, .10)`,
+        glow: `rgba(${r}, ${g}, ${b}, .35)`,
+        text: luminance > 0.6 ? "#000" : "#fff"
+    };
+}
+
+// Hauteur totale nécessaire pour la zone des joueurs (sert à fit())
+function playersAreaNeed() {
+
+    const groups = getTeamGroups();
+
+    if (!groups) {
+
+        const n = Math.max(1, currentPlayers.length);
+        const cols = gridColumnsFor(n);
+        const rows = Math.ceil(n / cols);
+
+        return 132 + BOSS_H + rows * 180 + (rows - 1) * 14;
+    }
+
+    let need = 132 + BOSS_H;
+
+    const cols = teamColumns(groups);
+
+    groups.forEach((group, index) => {
+
+        const rows = Math.ceil(group.players.length / cols);
+
+        need += rows * TEAM_ROW_MIN + (rows - 1) * TEAM_CARD_GAP + TEAM_BLOCK_EXTRA;
+
+        if (index > 0) {
+            need += TEAM_GAP;
+        }
+    });
+
+    return need;
+}
+
+function updateTeamGrids(groups, playersContainer) {
+
+    playersContainer.style.gridTemplateColumns = "";
+    playersContainer.style.gridTemplateRows = "";
+
+    const cols = teamColumns(groups);
+
+    const layout =
+        groups.map(group => {
+
+            return {
+                cols,
+                rows: Math.ceil(group.players.length / cols)
+            };
+        });
+
+    const totalRows =
+        layout.reduce((sum, item) => sum + item.rows, 0);
+
+    const fixedHeight =
+        groups.length * TEAM_BLOCK_EXTRA +
+        (groups.length - 1) * TEAM_GAP +
+        layout.reduce((sum, item) => sum + (item.rows - 1) * TEAM_CARD_GAP, 0);
+
+    let rowHeight = TEAM_ROW_MAX;
+
+    const availableHeight =
+        playersContainer.clientHeight;
+
+    if (availableHeight > 0) {
+
+        rowHeight =
+            Math.min(
+                TEAM_ROW_MAX,
+                Math.max(
+                    TEAM_ROW_MIN,
+                    (availableHeight - fixedHeight) / totalRows
+                )
+            );
+    }
+
+    playersContainer.style.setProperty(
+        "--card-h",
+        rowHeight + "px"
+    );
+
+    playersContainer
+        .querySelectorAll(".team-grid")
+        .forEach((grid, index) => {
+
+            const item = layout[index];
+
+            if (!item) {
+                return;
+            }
+
+            grid.style.gridTemplateColumns =
+                `repeat(${item.cols}, minmax(0, 1fr))`;
+
+            grid.style.gridTemplateRows =
+                `repeat(${item.rows}, ${rowHeight}px)`;
+        });
+}
+
+function updatePlayersGrid() {
+
+    const playersContainer =
+        document.getElementById(
+            "players"
+        );
+
+    const teamGroups =
+        getTeamGroups();
+
+    if (teamGroups) {
+
+        updateTeamGrids(
+            teamGroups,
+            playersContainer
+        );
+
+        return;
+    }
+
+    const count =
+        currentPlayers.length;
+
+    if (count <= 0) {
+
+        playersContainer.style.gridTemplateColumns =
+            "1fr";
+
+        playersContainer.style.gridTemplateRows =
+            "1fr";
+
+        return;
+    }
+
+    let columns = 1;
+    let rows = 1;
+
+    if (count === 1) {
+
+        columns = 1;
+        rows = 1;
+
+    }
+    else if (count === 2) {
+
+        columns = 2;
+        rows = 1;
+
+    }
+    else if (count === 3) {
+
+        columns = 3;
+        rows = 1;
+
+    }
+    else if (count === 4) {
+
+        columns = 2;
+        rows = 2;
+
+    }
+    else if (count === 5) {
+
+        columns = 3;
+        rows = 2;
+
+    }
+    else if (count === 6) {
+
+        columns = 3;
+        rows = 2;
+
+    }
+    else if (
+        count === 7 ||
+        count === 8
+    ) {
+
+        columns = 4;
+        rows = 2;
+
+    }
+    else if (count === 9) {
+
+        columns = 3;
+        rows = 3;
+
+    }
+    else {
+
+        columns = 4;
+
+        rows =
+            Math.ceil(
+                count / 4
+            );
+    }
+
+    playersContainer.style.gridTemplateColumns =
+        `repeat(${columns}, minmax(0, 1fr))`;
+
+    const gap = 14;
+
+    const availableHeight =
+        playersContainer.clientHeight;
+
+    let rowHeight = 180;
+
+    if (availableHeight > 0) {
+
+        rowHeight =
+            Math.min(
+                180,
+                Math.max(
+                    160,
+                    (
+                        availableHeight -
+                        gap * (rows - 1)
+                    ) / rows
+                )
+            );
+    }
+
+    playersContainer.style.gridTemplateRows =
+        `repeat(${rows}, ${rowHeight}px)`;
+
+    playersContainer.style.alignContent =
+        "start";
+}
+
+/* =========================
+   AFFICHAGE JOUEURS
+========================= */
+
+function createPlayerCard(player) {
+
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            "player-card";
+
+        const isBoss =
+            currentGame &&
+            player.name ===
+                currentGame.boss_name;
+
+        const sales =
+            Number(player.sales) || 0;
+
+        const esGoal =
+            Number(player.es_goal) > 0
+                ? Number(player.es_goal)
+                : 6;
+
+        const specialUnlocked =
+            sales >= esGoal &&
+            !Number(player.special_used);
+
+        const bonusUnlocked =
+            Number(player.bonus_special_available) === 1;
+
+        // Double de l'objectif : barre "win streak" + pouvoir Full Heal
+        const doubleGoal =
+            sales >= esGoal * 2;
+
+        const overPct =
+            sales > esGoal
+                ? Math.min(100, (sales - esGoal) / esGoal * 100)
+                : 0;
+
+        const healUnlocked =
+            Number(player.heal_power_available) === 1;
+
+        card.classList.toggle("streak", doubleGoal);
+
+        card.classList.toggle("is-boss", !!isBoss);
+
+        card.innerHTML = `
+
+            ${bonusUnlocked ? `
+                <button
+                    class="skull-button bonus ${specialUnlocked ? '' : 'alone'}"
+                    title="${
+                        isBoss
+                            ? "ONE SHOT bonus débloqué : utilisable quand tu n'es plus Boss"
+                            : "ONE SHOT bonus (4 nouveaux ES)"
+                    }"
+                    onclick="useSpecial('${escapeJs(player.name)}', true)"
+                    ${(actionInProgress || isBoss) ? "disabled" : ""}
+                >
+                    ☠️
+                </button>
+            ` : ""}
+
+            ${specialUnlocked ? `
+                <button
+                    class="skull-button"
+                    title="${
+                        isBoss
+                            ? "ONE SHOT débloqué : utilisable quand tu n'es plus Boss"
+                            : "ONE SHOT"
+                    }"
+                    onclick="useSpecial('${escapeJs(player.name)}')"
+                    ${(actionInProgress || isBoss) ? "disabled" : ""}
+                >
+                    ☠️
+                </button>
+            ` : ""}
+
+            ${healUnlocked ? `
+                <button
+                    class="power-button"
+                    title="${
+                        isBoss
+                            ? "FULL HEAL : tous les PV + bouclier max"
+                            : "FULL HEAL débloqué : utilisable quand tu es Boss"
+                    }"
+                    onclick="useHealPower('${escapeJs(player.name)}')"
+                    ${(actionInProgress || !isBoss) ? "disabled" : ""}
+                >
+                    💚
+                </button>
+            ` : ""}
+
+            <img
+                class="player-photo"
+                src="${getPlayerPhoto(player)}"
+                alt="${player.name}"
+            >
+
+            <div class="player-right">
+
+                <div class="player-info">
+
+                    <div class="player-name">
+                        ${player.name}
+                        ${isBoss ? ' <i class="crown"></i>' : ""}
+                    </div>
+
+                    <div class="player-sales ${sales >= esGoal ? 'maxed' : ''} ${doubleGoal ? 'streak' : ''}">
+
+                        <span class="player-es-current">
+                            ${sales} ES
+                        </span>
+
+                        <span class="player-es-separator">
+                            /
+                        </span>
+
+                        <span class="player-es-goal">
+                            ${esGoal}
+                        </span>
+
+                        <span class="es-gauge ${sales >= esGoal ? 'full' : ''} ${doubleGoal ? 'streak' : ''}"><i style="width:${Math.min(100, sales / esGoal * 100)}%"></i>${overPct > 0 ? `<b class="over" style="width:${overPct}%"></b>` : ""}</span>
+
+                    </div>
+
+                </div>
+
+                <div class="player-buttons">
+
+                    <button
+                        class="attack-button simple"
+                        onclick="attack(
+                            '${escapeJs(player.name)}',
+                            1,
+                            'simple'
+                        )"
+                        ${actionInProgress ? "disabled" : ""}
+                    >
+                        Simple
+                    </button>
+
+                    <button
+                        class="attack-button double"
+                        onclick="attack(
+                            '${escapeJs(player.name)}',
+                            3,
+                            'double'
+                        )"
+                        ${actionInProgress ? "disabled" : ""}
+                    >
+                        Double
+                    </button>
+
+                    <button
+                        class="attack-button triple"
+                        onclick="attack(
+                            '${escapeJs(player.name)}',
+                            6,
+                            'triple'
+                        )"
+                        ${actionInProgress ? "disabled" : ""}
+                    >
+                        Triple
+                    </button>
+
+                    <button
+                        class="undo-button"
+                        onclick="undoMyLastSale(
+                            '${escapeJs(player.name)}'
+                        )"
+                        ${actionInProgress ? "disabled" : ""}
+                    >
+                        Annuler
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return card;
+}
+
+function renderPlayers() {
+
+    const container =
+        document.getElementById(
+            "players"
+        );
+
+    container.innerHTML = "";
+
+    const groups =
+        getTeamGroups();
+
+    container.classList.toggle(
+        "teams-mode",
+        !!groups
+    );
+
+    if (!groups) {
+
+        updatePlayersGrid();
+
+        currentPlayers.forEach(player => {
+            container.appendChild(
+                createPlayerCard(player)
+            );
+        });
+
+        updatePlayersGrid();
+
+        return;
+    }
+
+    groups.forEach(group => {
+
+        const colors =
+            teamColors(group.team ? group.team.color : "#888888");
+
+        const teamName =
+            group.team ? group.team.name : "Sans équipe";
+
+        const teamSales =
+            group.players.reduce(
+                (sum, player) => sum + (Number(player.sales) || 0),
+                0
+            );
+
+        // Objectif de la team = somme des objectifs ES de ses membres
+        const teamGoal =
+            group.players.reduce(
+                (sum, player) =>
+                    sum + (Number(player.es_goal) > 0 ? Number(player.es_goal) : 6),
+                0
+            );
+
+        const block =
+            document.createElement("div");
+
+        block.className = "team-block";
+
+        block.style.setProperty("--tc", colors.color);
+        block.style.setProperty("--tc-bg", colors.bg);
+        block.style.setProperty("--tc-glow", colors.glow);
+        block.style.setProperty("--tc-txt", colors.text);
+
+        block.innerHTML = `
+            <div class="team-tag">
+                <span class="team-name">${escapeTeamHtml(teamName)}</span>
+                <span class="team-score">${teamSales} / ${teamGoal} ES</span>
+            </div>
+            <div class="team-grid"></div>
+        `;
+
+        const grid =
+            block.querySelector(".team-grid");
+
+        group.players.forEach(player => {
+            grid.appendChild(
+                createPlayerCard(player)
+            );
+        });
+
+        container.appendChild(block);
+    });
+
+    updatePlayersGrid();
+}
+
+/* =========================
+   ATTAQUE
+========================= */
+
+async function attack(
+    player,
+    damage,
+    attackType
+) {
+
+    if (actionInProgress) {
+        return;
+    }
+
+    actionInProgress = true;
+
+    renderPlayers();
+
+    const wasBoss =
+        currentGame &&
+        player ===
+            currentGame.boss_name;
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/attack",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        player,
+                        damage,
+                        attackType
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.error ||
+                data.message ||
+                "Erreur lors de l'attaque"
+            );
+        }
+
+        const bossChanged =
+            !wasBoss &&
+            currentGame &&
+            data.game.boss_name !==
+                currentGame.boss_name;
+
+        if (wasBoss) {
+
+            const hpGain =
+                Math.max(
+                    0,
+                    (Number(data.game.boss_hp) || 0) -
+                    (Number(currentGame && currentGame.boss_hp) || 0)
+                );
+
+            const shieldGain =
+                Math.max(
+                    0,
+                    (Number(data.game.boss_shield) || 0) -
+                    (Number(currentGame && currentGame.boss_shield) || 0)
+                );
+
+            if (hpGain === 0 && shieldGain === 0) {
+
+                // PV et bouclier déjà au maximum : pas de soin à montrer
+                animateBoss("maxed");
+            }
+            else if (hpGain > 0 || shieldGain === 0) {
+
+                animateBoss("heal", hpGain > 0 ? hpGain : damage);
+
+                if (shieldGain > 0) {
+
+                    setTimeout(
+                        () => animateBoss(
+                            "shield",
+                            shieldGain
+                        ),
+                        800
+                    );
+                }
+            }
+            else {
+
+                animateBoss("shield", shieldGain);
+            }
+        }
+        else {
+
+            const animType =
+                damage === 1
+                    ? "attack-simple"
+                    : damage === 3
+                        ? "attack-double"
+                        : damage === 6
+                            ? "attack-triple"
+                            : null;
+
+            // Dégâts réellement infligés (x2 si l'événement est actif)
+            const dealtDamage =
+                Number(data.damage) > 0
+                    ? Number(data.damage)
+                    : damage;
+
+            if (animType) {
+                animateBoss(animType, dealtDamage);
+            }
+        }
+
+        // Si le Boss tombe, on laisse le coup s'afficher sur lui
+        // avant de faire apparaître le nouveau Boss.
+        if (bossChanged) {
+
+            await new Promise(
+                resolve => setTimeout(
+                    resolve,
+                    450
+                )
+            );
+
+            // Bannière "nouveau Boss" (même style que le One Shot)
+            showNewBossBanner(
+                data.game.boss_name
+            );
+
+        }
+
+        currentGame =
+            data.game;
+
+        currentPlayers =
+            data.players;
+
+        updateBossDisplay(
+            currentGame
+        );
+
+        renderPlayers();
+
+        loadHistory();
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            error.message ||
+            "Une erreur est survenue."
+        );
+
+    }
+    finally {
+
+        actionInProgress = false;
+
+        renderPlayers();
+    }
+}
+
+/* =========================
+   FULL HEAL + BOUCLIER (double objectif)
+========================= */
+
+async function useHealPower(player) {
+
+    if (actionInProgress) {
+        return;
+    }
+
+    if (!(await confirmOneShot(player, "heal"))) {
+        return;
+    }
+
+    actionInProgress = true;
+
+    renderPlayers();
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/heal-power",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        player
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.error ||
+                data.message ||
+                "Impossible d'utiliser le Full Heal."
+            );
+        }
+
+        animateBoss("fullheal", 6);
+
+        currentGame =
+            data.game;
+
+        currentPlayers =
+            data.players;
+
+        updateBossDisplay(
+            currentGame
+        );
+
+        renderPlayers();
+
+        loadHistory();
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            error.message ||
+            "Une erreur est survenue."
+        );
+
+    }
+    finally {
+
+        actionInProgress = false;
+
+        renderPlayers();
+    }
+}
+
+/* =========================
+   ONE SHOT (TÊTE DE MORT)
+========================= */
+
+async function useSpecial(player, bonus = false) {
+
+    if (actionInProgress) {
+        return;
+    }
+
+    if (!(await confirmOneShot(player, bonus))) {
+        return;
+    }
+
+    actionInProgress = true;
+
+    renderPlayers();
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/special",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        player,
+                        bonus: !!bonus
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.error ||
+                data.message ||
+                "Impossible d'utiliser le One Shot."
+            );
+        }
+
+        // Explosion sur l'ancien Boss, puis le nouveau apparaît
+        // au moment du flash blanc (~50 % de l'animation).
+        showOneShotBanner(player);
+
+        animateBoss("oneshot");
+
+        await new Promise(
+            resolve => setTimeout(
+                resolve,
+                550
+            )
+        );
+
+        currentGame =
+            data.game;
+
+        currentPlayers =
+            data.players;
+
+        updateBossDisplay(
+            currentGame
+        );
+
+        renderPlayers();
+
+        loadHistory();
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            error.message ||
+            "Une erreur est survenue."
+        );
+
+    }
+    finally {
+
+        actionInProgress = false;
+
+        renderPlayers();
+    }
+}
+
+/* =========================
+   ANNULER
+========================= */
+
+async function undoMyLastSale(player) {
+
+    if (actionInProgress) {
+        return;
+    }
+
+    actionInProgress = true;
+
+    renderPlayers();
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/undo-my-last-sale",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        player
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.error ||
+                data.message ||
+                "Impossible d'annuler."
+            );
+        }
+
+        currentGame =
+            data.game;
+
+        currentPlayers =
+            data.players;
+
+        updateBossDisplay(
+            currentGame
+        );
+
+        renderPlayers();
+
+        loadHistory();
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            error.message ||
+            "Impossible d'annuler."
+        );
+
+    }
+    finally {
+
+        actionInProgress = false;
+
+        renderPlayers();
+    }
+}
+
+/* =========================
+   HISTORIQUE
+========================= */
+
+async function loadHistory() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/history"
+            );
+
+        const history =
+            await response.json();
+
+        const container =
+            document.getElementById(
+                "history-list"
+            );
+
+        container.innerHTML = "";
+
+        history.forEach(item => {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+            div.className =
+                "history-item";
+
+            let time = "";
+
+            if (item.created_at) {
+
+                const date =
+                    new Date(
+                        item.created_at
+                    );
+
+                if (
+                    !isNaN(
+                        date.getTime()
+                    )
+                ) {
+
+                    time =
+                        date.toLocaleTimeString(
+                            "fr-FR",
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit"
+                            }
+                        );
+                }
+            }
+
+            div.innerHTML = `
+
+                <span class="history-time">
+                    ${time}
+                </span>
+
+                ${item.action || ""}
+
+            `;
+
+            container.appendChild(
+                div
+            );
+
+        });
+
+    }
+    catch (error) {
+
+        console.error(
+            "Erreur historique:",
+            error
+        );
+    }
+}
+
+/* =========================
+   ANIMATION BOSS
+========================= */
+
+function spawnBossFx(container, type, amount) {
+
+    const add = (className, vars) => {
+
+        const el =
+            document.createElement("div");
+
+        el.className =
+            "boss-fx " + className;
+
+        if (vars) {
+            Object.entries(vars).forEach(
+                ([key, value]) => {
+                    el.style.setProperty(
+                        key,
+                        value
+                    );
+                }
+            );
+        }
+
+        container.appendChild(el);
+
+        return el;
+    };
+
+    if (String(type).indexOf("attack-") === 0) {
+        spawnHitFx(add, Number(amount) || 1);
+    }
+
+
+    if (type === "attack-simple") {
+
+        add("boss-slash", {
+            "--r": "-32deg",
+            "--h": "6px"
+        });
+
+    }
+    else if (type === "attack-double") {
+
+        add("boss-slash", {
+            "--r": "-32deg",
+            "--h": "9px"
+        });
+
+        add("boss-slash", {
+            "--r": "32deg",
+            "--h": "9px",
+            "--d": "0.1s"
+        });
+
+    }
+    else if (type === "attack-triple") {
+
+        add("boss-slash", {
+            "--r": "-38deg",
+            "--h": "13px"
+        });
+
+        add("boss-slash", {
+            "--r": "38deg",
+            "--h": "13px",
+            "--d": "0.1s"
+        });
+
+        add("boss-slash", {
+            "--r": "0deg",
+            "--h": "16px",
+            "--d": "0.2s"
+        });
+
+    }
+    else if (type === "heal") {
+
+        spawnHealFx(add, Number(amount) || 1);
+    }
+    else if (type === "maxed") {
+
+        add("boss-max-ring");
+        add("boss-max-ring", { "--d": "0.2s" });
+
+        const maxText = add("boss-num heal", {
+            "--fs": "50px",
+            "--c": "#fff2b0",
+            "--g": "#ffb300",
+            "--pw": 0.7,
+            "--dur": "1.3s"
+        });
+
+        maxText.textContent = "PV & BOUCLIER MAX 🛡️";
+    }
+    else if (type === "fullheal") {
+
+        // Phase 1 : explosion de soin (anneaux, faisceaux, "+", orbes)
+        spawnHealFx(add, 6, true);
+
+        const healText = add("boss-num heal", {
+            "--fs": "76px",
+            "--c": "#c8ffd8",
+            "--g": "#00ff64",
+            "--pw": 0.9,
+            "--dur": "1.6s"
+        });
+
+        healText.textContent = "FULL HEAL 💚";
+
+        // Phase 2 : le bouclier se forme (dôme violet, éclats)
+        setTimeout(() => {
+
+            if (!container.classList.contains("fullheal")) {
+                return;
+            }
+
+            add("boss-shield-dome");
+            add("boss-shield-dome big");
+
+            const shieldText = add("boss-num heal", {
+                "--fs": "64px",
+                "--c": "#ecd2ff",
+                "--g": "#a94bff",
+                "--pw": 0.8,
+                "--dur": "1.5s"
+            });
+
+            shieldText.textContent = "BOUCLIER MAX 🛡️";
+
+            for (let i = 0; i < 16; i++) {
+
+                add("boss-shard", {
+                    "--x": (8 + Math.random() * 84) + "%",
+                    "--rise": (90 + Math.random() * 110) + "px",
+                    "--s": (10 + Math.random() * 10) + "px",
+                    "--d": (Math.random() * 0.4) + "s"
+                });
+            }
+
+        }, 1000);
+    }
+    else if (type === "shield") {
+
+        add("boss-shield-dome");
+
+        const shieldNum = add("boss-num heal", {
+            "--fs": (36 + Math.min(1, (Number(amount) || 1) / 3) * 44) + "px",
+            "--c": "#ecd2ff",
+            "--g": "#a94bff",
+            "--pw": Math.min(1, (Number(amount) || 1) / 6)
+        });
+
+        shieldNum.textContent = "+" + (Number(amount) || 1) + " 🛡️";
+
+        const shards =
+            Math.min(
+                14,
+                4 + (Number(amount) || 1) * 2
+            );
+
+        for (let i = 0; i < shards; i++) {
+
+            add("boss-shard", {
+                "--x":
+                    (8 + Math.random() * 84) + "%",
+
+                "--rise":
+                    (90 + Math.random() * 90) + "px",
+
+                "--s":
+                    (10 + Math.random() * 10) + "px",
+
+                "--d":
+                    (Math.random() * 0.35) + "s"
+            });
+        }
+    }
+    else if (type === "oneshot") {
+
+        add("boss-explosion");
+        add("boss-shockwave");
+
+        const sparks = 18;
+
+        for (let i = 0; i < sparks; i++) {
+
+            add("boss-spark", {
+                "--a":
+                    (
+                        (360 / sparks) * i +
+                        Math.random() * 12
+                    ) + "deg",
+
+                "--dist":
+                    (
+                        90 +
+                        Math.random() * 110
+                    ) + "px"
+            });
+        }
+    }
+}
+
+function animateBoss(type, amount) {
+
+    const container =
+        document.getElementById(
+            "boss-image-container"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    clearTimeout(
+        container._animTimer
+    );
+
+    container.classList.remove(
+        "attack-simple",
+        "attack-double",
+        "attack-triple",
+        "heal",
+        "shield",
+        "oneshot",
+        "fullheal",
+        "maxed"
+    );
+
+    container
+        .querySelectorAll(".boss-fx")
+        .forEach(el => el.remove());
+
+    const parts = bossPanelParts(container);
+
+    ["panel-hit", "panel-heal"].forEach(c => parts.panel && parts.panel.classList.remove(c));
+    ["bar-hit", "bar-heal"].forEach(c => parts.bar && parts.bar.classList.remove(c));
+
+    const power = Math.max(0.15, Math.min(1, (Number(amount) || 1) / 6));
+
+    container.style.setProperty("--pw", power);
+
+    if (parts.panel) {
+        parts.panel.style.setProperty("--pw", power);
+    }
+
+    void container.offsetWidth;
+
+    container.classList.add(type);
+
+    if (String(type).indexOf("attack-") === 0) {
+
+        parts.panel && parts.panel.classList.add("panel-hit");
+        parts.bar && parts.bar.classList.add("bar-hit");
+
+    }
+    else if (type === "heal" || type === "fullheal") {
+
+        parts.panel && parts.panel.classList.add("panel-heal");
+        parts.bar && parts.bar.classList.add("bar-heal");
+    }
+
+    spawnBossFx(container, type, amount);
+
+    let duration = 700;
+
+    if (type === "attack-simple") {
+
+        duration = 1000;
+
+    }
+    else if (type === "attack-double") {
+
+        duration = 1150;
+
+    }
+    else if (type === "attack-triple") {
+
+        duration = 1400;
+
+    }
+    else if (type === "heal") {
+
+        duration = 1700;
+
+    }
+    else if (type === "fullheal") {
+
+        duration = 3000;
+
+    }
+    else if (type === "maxed") {
+
+        duration = 1500;
+
+    }
+    else if (type === "shield") {
+
+        duration = 1500;
+
+    }
+    else if (type === "oneshot") {
+
+        duration = 1200;
+
+    }
+
+    container._animTimer =
+        setTimeout(() => {
+
+            container.classList.remove(type);
+
+            const endParts = bossPanelParts(container);
+
+            ["panel-hit", "panel-heal"].forEach(c => endParts.panel && endParts.panel.classList.remove(c));
+            ["bar-hit", "bar-heal"].forEach(c => endParts.bar && endParts.bar.classList.remove(c));
+
+            container
+                .querySelectorAll(".boss-fx")
+                .forEach(el => el.remove());
+
+        }, duration);
+}
+
+/* =========================
+   CHARGEMENT GAME
+========================= */
+
+async function loadGame() {
+
+    const response =
+        await fetch("/api/game");
+
+    const game =
+        await response.json();
+
+    currentGame =
+        game;
+
+    updateBossDisplay(
+        currentGame
+    );
+}
+
+/* =========================
+   CHARGEMENT JOUEURS
+========================= */
+
+async function loadPlayers() {
+
+    const response =
+        await fetch("/api/players");
+
+    const players =
+        await response.json();
+
+    currentPlayers =
+        players;
+
+    try {
+        const teamsResponse =
+            await fetch("/api/teams");
+
+        currentTeams =
+            await teamsResponse.json();
+    }
+    catch (error) {
+        console.error("Erreur équipes:", error);
+    }
+
+    renderPlayers();
+}
+
+/* =========================
+   REFRESH COMPLET
+========================= */
+
+async function refreshAll() {
+
+    if (
+        refreshInProgress ||
+        actionInProgress
+    ) {
+        return;
+    }
+
+    refreshInProgress = true;
+
+    try {
+
+        const [
+            gameResponse,
+            playersResponse,
+            teamsResponse
+        ] = await Promise.all([
+
+            fetch("/api/game"),
+
+            fetch("/api/players"),
+
+            fetch("/api/teams")
+
+        ]);
+
+        const game =
+            await gameResponse.json();
+
+        const players =
+            await playersResponse.json();
+
+        const teams =
+            await teamsResponse.json();
+
+        currentGame =
+            game;
+
+        currentPlayers =
+            players;
+
+        currentTeams =
+            teams;
+
+        updateBossDisplay(
+            currentGame
+        );
+
+        renderPlayers();
+
+        await loadHistory();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Erreur refresh:",
+            error
+        );
+
+    }
+    finally {
+
+        refreshInProgress = false;
+
+    }
+}
+
+/* =========================
+   INITIALISATION
+========================= */
+
+async function init() {
+
+    await refreshAll();
+
+    setInterval(
+        refreshAll,
+        3000
+    );
+}
+
+function updateBattleGoal() {
+
+    const box =
+        document.getElementById("battle-goal");
+
+    if (!box || !currentGame) {
+        return;
+    }
+
+    const total =
+        currentPlayers.reduce(
+            (sum, player) => sum + (Number(player.sales) || 0),
+            0
+        );
+
+    const goal =
+        Number(currentGame.battle_goal) > 0
+            ? Number(currentGame.battle_goal)
+            : 100;
+
+    document.getElementById("battle-current").textContent = total;
+    document.getElementById("battle-target").textContent = goal;
+
+    document.getElementById("battle-fill").style.width =
+        Math.min(100, total / goal * 100) + "%";
+
+    box.classList.toggle("done", total >= goal);
+}
+
+function fit() {
+    const st = document.getElementById("stage");
+    const need = playersAreaNeed();
+    // Réduit sur petit écran (comme avant), agrandit sur grand écran.
+    // Ajuster FIT_BASE_WIDTH (plus petit = texte plus gros) et FIT_MAX_ZOOM.
+    const FIT_BASE_WIDTH = 1280;
+    const FIT_MAX_ZOOM = 2;
+    let s = Math.min(innerHeight / need, innerWidth / 1000);
+    if (s >= 1) {
+        s = Math.max(1, Math.min(s, innerWidth / FIT_BASE_WIDTH, FIT_MAX_ZOOM));
+    }
+    st.style.width = innerWidth / s + "px";
+    st.style.height = innerHeight / s + "px";
+    st.style.transform = "scale(" + s + ")";
+    updatePlayersGrid();
+}
+function updateEventRules() {
+    const game = currentGame || {};
+    // Pastilles d'événements en haut à gauche de la photo du Boss.
+    // On ne reconstruit que si l'état change, pour ne pas rejouer l'animation.
+    const box = document.getElementById("boss-events");
+    if (!box) return;
+
+    const key = (Number(game.event_double_damage) ? "d" : "") +
+                (Number(game.event_extra_oneshot) ? "o" : "");
+
+    if (box.dataset.key === key) return;
+
+    box.dataset.key = key;
+    box.innerHTML =
+        (key.includes("d")
+            ? '<div class="event-chip double">💥 x2</div>'
+            : "") +
+        (key.includes("o")
+            ? '<div class="event-chip oneshot">☠️ <span class="num">4</span><small>ES</small></div>'
+            : "");
+}
+
+const _renderPlayers = renderPlayers;
+renderPlayers = function () { _renderPlayers(); updateBattleGoal(); updateEventRules(); fit(); };
+addEventListener("resize", fit);
+fit();
+
+init();
+
+</script>
+
+</body>
+</html>
