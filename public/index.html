@@ -35,8 +35,8 @@ header h1{margin:0;font:400 38px/1 var(--f);letter-spacing:2px;text-transform:up
 .reglages-button:active,.attack-button:active,.undo-button:active{transform:translateY(3px);box-shadow:none}
 
 /* MISE EN PAGE */
-.main{flex:1;min-height:0;padding:24px 22px 16px;display:grid;grid-template-rows:240px minmax(0,1fr);gap:24px}
-.boss-area{display:flex;gap:24px;height:240px}
+.main{flex:1;min-height:0;padding:24px 22px 16px;display:grid;grid-template-rows:var(--boss-h,260px) minmax(0,1fr);gap:24px}
+.boss-area{display:flex;gap:24px;height:var(--boss-h,260px)}
 .content{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(240px,24cqw,380px);gap:24px}
 .attack-rules,.boss-rules,.history,.player-card{background:radial-gradient(rgba(255,196,0,.11) 1.3px,transparent 1.8px) 0 0/11px 11px,linear-gradient(160deg,#201213,#0f0a0a);border:3px solid #000;border-radius:14px;box-shadow:0 0 0 3px var(--y),6px 6px 0 3px #000}
 
@@ -52,18 +52,16 @@ header h1{margin:0;font:400 38px/1 var(--f);letter-spacing:2px;text-transform:up
 .res.hot{background:var(--r);color:#fff}
 
 /* BOSS */
-.boss-panel{position:relative;flex:0 0 50%;min-width:0;overflow:hidden;background:#000;border:4px solid #000;border-radius:16px;box-shadow:0 0 0 4px var(--y),0 0 0 8px #000,10px 10px 0 8px var(--r)}
-.boss-image-container{position:relative;width:100%;height:100%;overflow:hidden;background:#000}
+.boss-panel{position:relative;flex:0 0 41%;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:#000;border:4px solid #000;border-radius:16px;box-shadow:0 0 0 4px var(--y),0 0 0 8px #000,10px 10px 0 8px var(--r)}
+.boss-image-container{position:relative;flex:1 1 0;min-height:0;width:100%;overflow:hidden;background:#000}
 .boss-image-container img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}
-.boss-image-container::before{content:"";position:absolute;z-index:2;inset:auto 0 0 0;height:55%;background:linear-gradient(to top,rgba(0,0,0,.85),transparent);pointer-events:none}
 .boss-image-container::after{content:"";position:absolute;z-index:3;inset:0;pointer-events:none;opacity:0}
 .boss-name{position:absolute;z-index:5;top:12px;left:-6px;max-width:85%;padding:2px 28px 2px 20px;font:400 clamp(24px,2.6cqw,38px)/1.15 var(--f);letter-spacing:2px;white-space:nowrap;color:#fff;background:var(--r);border:3px solid #000;border-left:0;box-shadow:4px 4px 0 var(--y);text-shadow:2px 2px 0 #000;transform:skewX(-10deg)}
-.boss-info{position:absolute;z-index:5;left:16px;right:16px;bottom:12px}
-.boss-hp-text{display:inline-block;margin-bottom:5px;padding:0 12px;font:400 22px/1.3 var(--f);letter-spacing:1px;color:var(--y);background:#000;border:2px solid var(--y);border-radius:8px}
-.boss-hp-bar{position:relative;height:26px;overflow:hidden;background:#2a0508;border:3px solid #000;border-radius:6px;box-shadow:0 0 0 3px var(--y);transform:skewX(-14deg)}
+.boss-info{position:relative;z-index:5;flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:9px 18px 11px;background:#000;border-top:3px solid var(--y)}
+.boss-hp-text{display:inline-block;flex:0 0 auto;white-space:nowrap;margin:0;padding:0 12px;font:400 22px/1.3 var(--f);letter-spacing:1px;color:var(--y);background:#000;border:2px solid var(--y);border-radius:8px}
+.boss-hp-bar{position:relative;flex:1 1 0;min-width:0;height:26px;overflow:hidden;background:#2a0508;border:3px solid #000;border-radius:6px;box-shadow:0 0 0 3px var(--y);transform:skewX(-14deg)}
 .boss-hp-fill{position:relative;z-index:1;height:100%;background:linear-gradient(#ff5a5f 0 35%,#e30613 35% 70%,#a50009 70%);transition:width .3s}
-.boss-hp-bar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(100% / var(--segs,10) - 3px),#000 calc(100% / var(--segs,10) - 3px) calc(100% / var(--segs,10)));pointer-events:none;z-index:2}
-.boss-hp-bar.no-segs::after{display:none}
+.boss-hp-bar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 3px),#000 calc(10% - 3px) 10%);pointer-events:none;z-index:2}
 
 /* JOUEURS */
 .players{min-width:0;min-height:0;display:grid;gap:14px;align-content:start}
@@ -87,8 +85,8 @@ header h1{margin:0;font:400 38px/1 var(--f);letter-spacing:2px;text-transform:up
 .teams-mode .attack-button{border-width:2px;box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 4px 0 #000}
 .teams-mode .undo-button{font-size:16px;box-shadow:0 2px 0 #000}
 /* l'étiquette BOSS passe à droite pour ne pas être cachée par l'étiquette d'équipe */
-.teams-mode .player-card.is-boss::before{top:calc(50% - min(clamp(48px,28cqw,160px),calc(var(--card-h,128px) - 26px)) / 2);left:calc(6px + min(clamp(48px,28cqw,160px),calc(var(--card-h,128px) - 26px)) / 2)}
-.player-card.is-boss::before{content:"BOSS";position:absolute;top:calc(50% - clamp(48px,28cqw,160px) / 2);left:calc(8px + clamp(48px,28cqw,160px) / 2);z-index:6;padding:0 12px;font:400 16px/1.4 var(--f);letter-spacing:1px;color:var(--y);background:var(--r);border:2px solid #000;border-radius:6px;box-shadow:2px 2px 0 #000;transform:translate(-50%,-50%) rotate(-3deg)}
+.teams-mode .player-card.is-boss::before{top:calc(50% - min(clamp(48px,28cqw,160px),calc(var(--card-h,128px) - 26px)) / 2 + 4px);left:1px}
+.player-card.is-boss::before{content:"BOSS";position:absolute;top:calc(50% - clamp(48px,28cqw,160px) / 2 + 4px);left:3px;z-index:8;padding:0 10px;font:400 16px/1.4 var(--f);letter-spacing:1px;color:var(--y);background:var(--r);border:2px solid #000;border-radius:6px;box-shadow:2px 2px 0 #000;transform:rotate(-6deg);transform-origin:left top}
 .player-photo{height:auto;width:clamp(48px,28cqw,160px);aspect-ratio:1;flex-shrink:0;align-self:center;object-fit:cover;background:#222;border:3px solid #000;border-radius:10px;box-shadow:0 0 0 3px var(--y)}
 .player-right{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:6px}
 .player-info{flex:0 0 auto;min-width:0}
@@ -135,8 +133,15 @@ header h1{margin:0;font:400 38px/1 var(--f);letter-spacing:2px;text-transform:up
 
 /* CADRE AUTO-ADAPTATIF : #stage est réduit par JS pour tout afficher sans défilement */
 #stage{position:absolute;left:0;top:0;width:100vw;height:100vh;display:flex;flex-direction:column;transform-origin:0 0;container-type:inline-size}
-@container (max-width:1250px){.boss-panel{flex-basis:40%}.attack-rules,.boss-rules{padding:12px}}
+@container (max-width:1250px){.boss-panel{flex-basis:41%}.attack-rules,.boss-rules{padding:12px}}
 @media(prefers-reduced-motion:reduce){.skull-button{animation:none}}
+
+/* PV BAS : halo rouge qui pulse doucement + texte PV qui rougit */
+.boss-panel.low-hp::after{content:"";position:absolute;inset:0;z-index:4;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 26px 6px rgba(227,6,19,.6);animation:lowHpPulse 1.8s ease-in-out infinite}
+.boss-panel.low-hp .boss-hp-text{animation:lowHpText 1.8s ease-in-out infinite}
+@keyframes lowHpPulse{0%,100%{opacity:.1}50%{opacity:.85}}
+@keyframes lowHpText{0%,100%{color:var(--y)}50%{color:#ff5a5f}}
+@media(prefers-reduced-motion:reduce){.boss-panel.low-hp::after{animation:none;opacity:.5}.boss-panel.low-hp .boss-hp-text{animation:none}}
 
 /* =========================
    ANIMATIONS BOSS
@@ -829,32 +834,6 @@ header h1{margin:0;font:400 38px/1 var(--f);letter-spacing:2px;text-transform:up
 @keyframes bossImgMaxed{0%{transform:scale(1);filter:none}30%{transform:scale(1.04);filter:brightness(1.35) saturate(1.2) sepia(.3)}60%{transform:scale(1.02);filter:brightness(1.15) sepia(.15)}100%{transform:scale(1);filter:none}}
 @keyframes bossMaxedFlash{0%{opacity:0;background:rgba(255,200,0,0)}30%{opacity:.5;background:rgba(255,215,90,.35)}100%{opacity:0;background:rgba(255,200,0,0)}}
 .boss-max-ring{left:50%;top:50%;width:55%;aspect-ratio:1;border-radius:50%;border:5px solid rgba(255,225,120,.95);box-shadow:0 0 18px 4px rgba(255,190,0,.7),inset 0 0 18px 2px rgba(255,190,0,.45);transform:translate(-50%,-50%) scale(.3);opacity:0;animation:bossHealRing .9s ease-out var(--d,0s) forwards}
-
-/* =========================
-   BOSS EN DANGER : PV bas (<= 30 %), puis critique (<= 10 % ou 1 PV)
-   Désactivé tant que le Boss a du bouclier.
-========================= */
-.boss-danger{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .4s}
-.boss-image-container.lowhp .boss-danger{opacity:1;animation:dangerPulse 3.2s ease-in-out infinite}
-.boss-image-container.lowhp.critical .boss-danger{animation-duration:2s}
-@keyframes dangerPulse{
-    0%,100%{box-shadow:inset 0 0 40px 6px rgba(255,0,0,.3);background:rgba(255,0,0,0)}
-    50%{box-shadow:inset 0 0 60px 12px rgba(255,0,0,.55);background:rgba(255,0,0,.05)}
-}
-.boss-image-container.lowhp:not(.attack-simple,.attack-double,.attack-triple,.heal,.shield,.oneshot,.fullheal,.maxed) img{animation:bossHeartbeat 3.2s ease-in-out infinite}
-.boss-image-container.lowhp.critical:not(.attack-simple,.attack-double,.attack-triple,.heal,.shield,.oneshot,.fullheal,.maxed) img{animation:bossHeartbeatCrit 2s ease-in-out infinite}
-@keyframes bossHeartbeat{
-    0%,100%{transform:scale(1);filter:none}
-    50%{transform:scale(1.01);filter:brightness(1.05) saturate(1.15)}
-}
-@keyframes bossHeartbeatCrit{
-    0%,100%{transform:scale(1);filter:saturate(1.1)}
-    50%{transform:scale(1.015);filter:brightness(1.08) saturate(1.3)}
-}
-.boss-hp-bar.bar-low:not(.bar-heal):not(.bar-hit) .boss-hp-fill{animation:lowFill 2.4s ease-in-out infinite alternate}
-.boss-hp-bar.bar-low.crit:not(.bar-heal):not(.bar-hit) .boss-hp-fill{animation-duration:1.5s}
-@keyframes lowFill{from{filter:brightness(1)}to{filter:brightness(1.3) saturate(1.2)}}
-@media(prefers-reduced-motion:reduce){.boss-image-container.lowhp .boss-danger,.boss-image-container.lowhp img,.boss-hp-bar.bar-low .boss-hp-fill{animation:none!important}}
 </style>
 </head>
 
@@ -911,12 +890,12 @@ header h1{margin:0;font:400 38px/1 var(--f);letter-spacing:2px;text-transform:up
 
                 <div id="boss-events" class="boss-events"></div>
 
-                <div id="boss-danger" class="boss-danger"></div>
-
                 <div class="boss-name">
                     <span id="boss-name">
                         Kevin
                     </span>
+                </div>
+
                 </div>
 
                 <div class="boss-info">
@@ -951,8 +930,6 @@ header h1{margin:0;font:400 38px/1 var(--f);letter-spacing:2px;text-transform:up
                     </div>
 
                 </div>
-
-            </div>
 
         </div>
 
@@ -1238,7 +1215,7 @@ function bossPanelParts(container) {
 
     return {
         panel: container.closest(".boss-panel"),
-        bar: container.querySelector(".boss-hp-bar")
+        bar: container.closest(".boss-panel").querySelector(".boss-hp-bar")
     };
 }
 
@@ -1620,34 +1597,6 @@ function updateBossDisplay(game) {
             "shielded",
             shield > 0
         );
-
-        // Boss en danger : PV bas et pas de bouclier pour le protéger
-        const lowHp =
-            shield === 0 &&
-            hp > 0 &&
-            hp / maxHp <= 0.3;
-
-        const critical =
-            lowHp &&
-            (hp <= 1 || hp / maxHp <= 0.1);
-
-        bossContainer.classList.toggle("lowhp", lowHp);
-        bossContainer.classList.toggle("critical", critical);
-
-        const hpBar = bossContainer.querySelector(".boss-hp-bar");
-
-        if (hpBar) {
-            hpBar.classList.toggle("bar-low", lowHp);
-            hpBar.classList.toggle("crit", critical);
-        }
-    }
-
-    // Une section de la barre = 1 PV (séparateurs masqués si trop nombreux)
-    const segBar = document.querySelector(".boss-hp-bar");
-
-    if (segBar) {
-        segBar.style.setProperty("--segs", maxHp);
-        segBar.classList.toggle("no-segs", maxHp > 80);
     }
 
     const percent =
@@ -1660,6 +1609,15 @@ function updateBossDisplay(game) {
         );
 
     bossHpFill.style.width = percent + "%";
+
+    const bossPanelEl = document.querySelector(".boss-panel");
+
+    if (bossPanelEl) {
+        bossPanelEl.classList.toggle(
+            "low-hp",
+            hp > 0 && percent <= LOW_HP_THRESHOLD
+        );
+    }
 
     // Traînée blanche/orange : la barre "perd" visiblement les PV encaissés
     const hpGhost = document.getElementById("boss-hp-ghost");
@@ -1702,6 +1660,13 @@ function getPlayerPhoto(player) {
    CHANGEMENT GRILLE
 ========================= */
 
+// Hauteur de la zone boss/règles (px). Modifier ici pour ajuster la taille des cadres.
+const BOSS_H = 260;
+document.documentElement.style.setProperty("--boss-h", BOSS_H + "px");
+
+// Le boss est considéré « low HP » quand il lui reste ce pourcentage de PV ou moins.
+const LOW_HP_THRESHOLD = 30;
+
 const TEAM_BLOCK_EXTRA = 46;   // cadre d'équipe : bordure + marges (étiquette comprise)
 const TEAM_GAP = 22;           // espace entre deux cadres d'équipe
 const TEAM_CARD_GAP = 12;      // espace entre deux cartes d'une même équipe
@@ -1730,6 +1695,18 @@ function gridColumnsFor(count) {
     if (count === 9) return 3;
 
     return 4;
+}
+
+// Nombre de colonnes commun à toutes les équipes : calculé sur la plus grande,
+// pour que toutes les cartes joueurs aient exactement la même taille.
+function teamColumns(groups) {
+
+    const biggest = Math.max(
+        1,
+        ...groups.map(group => group.players.length)
+    );
+
+    return gridColumnsFor(biggest);
 }
 
 // Regroupe les joueurs par équipe. Renvoie null s'il n'y a aucune équipe
@@ -1800,14 +1777,15 @@ function playersAreaNeed() {
         const cols = gridColumnsFor(n);
         const rows = Math.ceil(n / cols);
 
-        return 372 + rows * 180 + (rows - 1) * 14;
+        return 132 + BOSS_H + rows * 180 + (rows - 1) * 14;
     }
 
-    let need = 372;
+    let need = 132 + BOSS_H;
+
+    const cols = teamColumns(groups);
 
     groups.forEach((group, index) => {
 
-        const cols = gridColumnsFor(group.players.length);
         const rows = Math.ceil(group.players.length / cols);
 
         need += rows * TEAM_ROW_MIN + (rows - 1) * TEAM_CARD_GAP + TEAM_BLOCK_EXTRA;
@@ -1825,11 +1803,10 @@ function updateTeamGrids(groups, playersContainer) {
     playersContainer.style.gridTemplateColumns = "";
     playersContainer.style.gridTemplateRows = "";
 
+    const cols = teamColumns(groups);
+
     const layout =
         groups.map(group => {
-
-            const cols =
-                gridColumnsFor(group.players.length);
 
             return {
                 cols,
@@ -2774,35 +2751,26 @@ async function loadHistory() {
 
             if (item.created_at) {
 
-                // SQLite stocke l'heure en UTC ("YYYY-MM-DD HH:MM:SS", sans fuseau) :
-                // on la lit comme de l'UTC puis on l'affiche à l'heure de Paris.
-                const raw = String(item.created_at).trim();
-
                 const date =
                     new Date(
-                        /[zZ]|[+-]\d\d:?\d\d$/.test(raw)
-                            ? raw
-                            : raw.replace(" ", "T") + "Z"
+                        item.created_at
                     );
 
-                if (!isNaN(date.getTime())) {
-
-                    const parts = {};
-
-                    new Intl.DateTimeFormat("fr-FR", {
-                        timeZone: "Europe/Paris",
-                        day: "2-digit",
-                        month: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hourCycle: "h23"
-                    })
-                    .formatToParts(date)
-                    .forEach(part => { parts[part.type] = part.value; });
+                if (
+                    !isNaN(
+                        date.getTime()
+                    )
+                ) {
 
                     time =
-                        parts.day + "/" + parts.month + " " +
-                        parts.hour + ":" + parts.minute;
+                        date.toLocaleTimeString(
+                            "fr-FR",
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit"
+                            }
+                        );
                 }
             }
 
